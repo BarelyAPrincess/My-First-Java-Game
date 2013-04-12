@@ -2,6 +2,8 @@ package com.ufharmony;
 
 import java.util.Random;
 
+import menu.elements.Panel;
+
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.TextureKey;
 import com.jme3.bullet.BulletAppState;
@@ -42,6 +44,20 @@ import com.ufharmony.blocks.BlockSponge;
 import com.ufharmony.blocks.BlockStone;
 import com.ufharmony.blocks.BlockWood;
 import com.ufharmony.gen.surface.GenTree;
+import com.ufharmony.grid.ChunkListener;
+import com.ufharmony.grid.Chunk_MeshOptimizer;
+import com.ufharmony.grid.GridSettings;
+import com.ufharmony.grid.Navigator;
+import com.ufharmony.grid.BlockProperties;
+import com.ufharmony.grid.TerrainControl;
+import com.ufharmony.grid.ChunkControl;
+import com.ufharmony.grid.TerrainHelper;
+import com.ufharmony.objects.ObjectBase;
+import com.ufharmony.objects.ObjectChest;
+import com.ufharmony.states.MainMenu;
+import com.ufharmony.utils.Vector3Int;
+
+import de.lessvoid.nifty.Nifty;
 
 public class Main extends SimpleApplication implements ActionListener
 {
@@ -58,14 +74,15 @@ public class Main extends SimpleApplication implements ActionListener
 	private RigidBodyControl ball_phy;
 	private static final Sphere sphere;
 	
-	// MC
 	private final Vector3Int terrainSize = new Vector3Int( 256, 128, 256 );
 	private boolean[] arrowKeys = new boolean[4];
-	private CubesSettings cubesSettings;
-	private static BlockTerrainControl blockTerrain;
+	private GridSettings cubesSettings;
+	private static TerrainControl blockTerrain;
 	private Node terrainNode = new Node();
 	
 	private GenTree tree = new GenTree();
+	
+	private Panel mainPanel = new Panel();
 	
 	static
 	{
@@ -98,7 +115,7 @@ public class Main extends SimpleApplication implements ActionListener
 		settings = new AppSettings( true );
 		settings.setWidth( 1280 );
 		settings.setHeight( 720 );
-		settings.setTitle( "Beyond Equestria - Work In Progress" );
+		settings.setTitle( "United Federation of Harmony - Work In Progress" );
 		settings.setFrameRate( 120 );
 		
 		showSettings = false;
@@ -110,13 +127,17 @@ public class Main extends SimpleApplication implements ActionListener
 		player.setJumpSpeed( 25.0F );
 		player.setFallSpeed( 30.0F );
 		player.setGravity( 80.0F );
-		player.setPhysicsLocation( new Vector3f( 5.0F, terrainSize.getY() + 5, 5.0F ).mult( cubesSettings.getBlockSize() ) );
+		player.setPhysicsLocation( new Vector3f( 5.0F, terrainSize.getY() + 5, 5.0F ).mult( cubesSettings.getSquareSize() ) );
 		bulletAppState.getPhysicsSpace().add( player );
 	}
 	
 	public void simpleInitApp()
 	{
 		setPauseOnLostFocus( true );
+		
+		flyCam.setEnabled( false );
+		flyCam.setDragToRotate( true );
+		inputManager.setCursorVisible( true );
 		
 		bulletAppState = new BulletAppState();
 		stateManager.attach( bulletAppState );
@@ -125,6 +146,8 @@ public class Main extends SimpleApplication implements ActionListener
 		initCrossHairs();
 		
 		BlockBase.registerBlocks();
+		ObjectBase.registerObjects();
+		
 		TerrainHelper.initializeEnvironment( this );
 		TerrainHelper.initializeWater( this );
 		
@@ -159,52 +182,56 @@ public class Main extends SimpleApplication implements ActionListener
 		bulletAppState.getPhysicsSpace().add( test_phy );
 		
 		cubesSettings = TerrainHelper.getSettings( this );
-		blockTerrain = new BlockTerrainControl( cubesSettings, new Vector3Int( 7, 1, 7 ) );
+		blockTerrain = new TerrainControl( cubesSettings, new Vector3Int( 7, 1, 7 ) );
 		
-		blockTerrain.setBlocksFromNoise( new Vector3Int(), terrainSize, 0.05F, BlockStone.class );
+		blockTerrain.setSquaresFromNoise( new Vector3Int(), terrainSize, 0.05F, BlockStone.class );
 		
 		for ( int x = 0; x < 256; x++ )
 		{
 			for ( int z = 0; z < 256; z++ )
 			{
-				Vector3Int t = blockTerrain.getChunk( new Vector3Int( 1, 0, 1 ) ).getHighestSolidBlockAt( new Vector3Int( x, 0, z ) );
+				Vector3Int t = blockTerrain.getChunk( new Vector3Int( 1, 0, 1 ) ).getHighestSquareAt( new Vector3Int( x, 0, z ) );
 				
 				if ( t != null )
 				{
-					blockTerrain.setBlock( t, BlockGrass.class );
+					blockTerrain.setSquare( t, BlockGrass.class );
 					
 					for ( int y = 1; y < 4; y++ )
 					{
-						blockTerrain.setBlock( t.subtract( new Vector3Int( 0, y, 0 ) ), BlockDirt.class );
+						blockTerrain.setSquare( t.subtract( new Vector3Int( 0, y, 0 ) ), BlockDirt.class );
 					}
 					
-					blockTerrain.setBlock( new Vector3Int( t.getX(), 0, t.getZ() ), BlockBedrock.class );
-					blockTerrain.setBlock( new Vector3Int( t.getX(), 1, t.getZ() ), BlockBedrock.class );
-					blockTerrain.setBlock( new Vector3Int( t.getX(), 2, t.getZ() ), BlockBedrock.class );
+					blockTerrain.setSquare( new Vector3Int( t.getX(), 0, t.getZ() ), BlockBedrock.class );
+					blockTerrain.setSquare( new Vector3Int( t.getX(), 1, t.getZ() ), BlockBedrock.class );
+					blockTerrain.setSquare( new Vector3Int( t.getX(), 2, t.getZ() ), BlockBedrock.class );
 					
-					if ( r.nextInt(100) == 0 )
-						blockTerrain.setBlock( t.subtract( new Vector3Int( 0, r.nextInt( t.getY() ) + 1, 0 ) ), BlockSponge.class );
+					if ( r.nextInt( 100 ) == 0 )
+						blockTerrain.setSquare( t.subtract( new Vector3Int( 0, r.nextInt( t.getY() ) + 1, 0 ) ), BlockSponge.class );
 				}
 			}
 		}
 		
+		//blockTerrain.setSquare( blockTerrain.getChunk( new Vector3Int( 1, 0, 1 ) ).getHighestSquareAt( new Vector3Int( 10, 0, 10 ) ), ObjectChest.class );
+		
+		/*
 		for ( int x = 0; x < 256; x++ )
 		{
 			for ( int z = 0; z < 256; z++ )
 			{
-				Vector3Int t = blockTerrain.getChunk( new Vector3Int( 1, 0, 1 ) ).getHighestSolidBlockAt( new Vector3Int( x, 0, z ) );
+				Vector3Int t = blockTerrain.getChunk( new Vector3Int( 1, 0, 1 ) ).getHighestSquareAt( new Vector3Int( x, 0, z ) );
 				
 				if ( t != null )
 				{
-					if ( r.nextInt(150) == 0 )
+					if ( r.nextInt( 150 ) == 0 )
 						tree.generate( r, t );
 				}
 			}
 		}
+		*/
 		
-		blockTerrain.addChunkListener( new BlockChunkListener()
+		blockTerrain.addChunkListener( new ChunkListener()
 		{
-			public void onSpatialUpdated( BlockChunkControl blockChunk )
+			public void onSpatialUpdated( ChunkControl blockChunk )
 			{
 				Geometry optimizedGeometry = blockChunk.getOptimizedGeometry();
 				RigidBodyControl rigidBodyControl = (RigidBodyControl) optimizedGeometry.getControl( RigidBodyControl.class );
@@ -217,6 +244,7 @@ public class Main extends SimpleApplication implements ActionListener
 				rigidBodyControl.setCollisionShape( new MeshCollisionShape( optimizedGeometry.getMesh() ) );
 			}
 		} );
+		
 		terrainNode.addControl( blockTerrain );
 		terrainNode.setShadowMode( RenderQueue.ShadowMode.CastAndReceive );
 		rootNode.attachChild( terrainNode );
@@ -224,6 +252,8 @@ public class Main extends SimpleApplication implements ActionListener
 		initPlayer();
 		cam.lookAtDirection( new Vector3f( 1.0F, 0.0F, 1.0F ), Vector3f.UNIT_Y );
 	}
+	
+	private Nifty nifty;
 	
 	public void bindEntity( Spatial o )
 	{
@@ -292,14 +322,17 @@ public class Main extends SimpleApplication implements ActionListener
 		inputManager.addMapping( "Derp", new KeyTrigger( KeyInput.KEY_LCONTROL ) );
 		inputManager.addListener( this, "Derp" );
 		
-		//inputManager.deleteMapping( "FLYCAM_ZoomIn" );
-		//inputManager.deleteMapping( "FLYCAM_ZoomOut" );
+		inputManager.addMapping( "MainMenu", new KeyTrigger( KeyInput.KEY_Q ) );
+		inputManager.addListener( this, "MainMenu" );
 		
-		inputManager.addMapping( "inv", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, true) );
+		// inputManager.deleteMapping( "FLYCAM_ZoomIn" );
+		// inputManager.deleteMapping( "FLYCAM_ZoomOut" );
+		
+		inputManager.addMapping( "inv", new MouseAxisTrigger( MouseInput.AXIS_WHEEL, true ) );
 		inputManager.addListener( this, "inv" );
 	}
 	
-	public static BlockTerrainControl getWorld ()
+	public static TerrainControl getWorld()
 	{
 		return blockTerrain;
 	}
@@ -336,6 +369,13 @@ public class Main extends SimpleApplication implements ActionListener
 			{
 				isRunning = !isRunning;
 			}
+			else if ( binding.equals( "MainMenu" ) && !value )
+			{
+				System.out.println( "Trying to show main menu!" );
+				
+				stateManager.attach( new MainMenu( this ) );
+				stateManager.getState( MainMenu.class ).setEnabled( true );
+			}
 			else if ( binding.equals( "inv" ) && !value )
 			{
 				System.out.println( "Scroll Wheel" );
@@ -345,7 +385,7 @@ public class Main extends SimpleApplication implements ActionListener
 				Vector3Int blockLocation = getCurrentPointedBlockLocation( false );
 				if ( ( blockLocation != null ) && ( blockLocation.getY() > 0 ) )
 				{
-					//blockTerrain.removeBlock( blockLocation );
+					// blockTerrain.removeBlock( blockLocation );
 					
 					TerrainHelper.doExplosion( blockLocation );
 				}
@@ -354,7 +394,7 @@ public class Main extends SimpleApplication implements ActionListener
 			{
 				Vector3Int blockLocation = getCurrentPointedBlockLocation( true );
 				if ( blockLocation != null )
-					blockTerrain.setBlock( blockLocation, BlockWood.class );
+					blockTerrain.setSquare( blockLocation, BlockWood.class );
 			}
 			else if ( binding.equals( "Derp" ) && !value )
 			{
@@ -363,16 +403,16 @@ public class Main extends SimpleApplication implements ActionListener
 				{
 					try
 					{
-						BlockProperties bp = BlockChunk_MeshOptimizer.blockProperties[blockLocation.getX()][blockLocation.getY()][blockLocation.getZ()];
+						BlockProperties bp = Chunk_MeshOptimizer.squareProperties[blockLocation.getX()][blockLocation.getY()][blockLocation.getZ()];
 						System.out.println( bp.side_top_left + " " + bp.side_top_right + " " + bp.side_top_front + " " + bp.side_top_back );
 					}
 					catch ( Exception e )
-					{
+					{	
 						
 					}
 				}
 				
-				//makeCannonBall();
+				// makeCannonBall();
 				
 				/*
 				 * Spatial derpy = assetManager.loadModel( "Model/Derpy/derpy_all-in-one.OBJ" ); Material mat_default = new
@@ -402,7 +442,7 @@ public class Main extends SimpleApplication implements ActionListener
 		if ( results.size() > 0 )
 		{
 			Vector3f collisionContactPoint = results.getClosestCollision().getContactPoint();
-			return BlockNavigator.getPointedBlockLocation( blockTerrain, collisionContactPoint, getNeighborLocation );
+			return Navigator.getPointedSquareLocation( blockTerrain, collisionContactPoint, getNeighborLocation );
 		}
 		return null;
 	}
@@ -484,8 +524,6 @@ public class Main extends SimpleApplication implements ActionListener
 		}
 		player.setWalkDirection( walkDirection );
 		cam.setLocation( player.getPhysicsLocation() );
-		
-		pivot.rotate( tpf, tpf, tpf );
 	}
 	
 	Node pivot = new Node( "pivot" );

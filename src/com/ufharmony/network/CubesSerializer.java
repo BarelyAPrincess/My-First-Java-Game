@@ -1,6 +1,6 @@
 package com.ufharmony.network;
 
-import com.ufharmony.BlockTerrainControl;
+import com.ufharmony.grid.TerrainControl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,7 +9,7 @@ import java.io.PrintStream;
 
 public class CubesSerializer
 {
-  public static byte[] writeToBytes(BlockTerrainControl blockTerrain)
+  public static byte[] writeToBytes(TerrainControl blockTerrain)
   {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     BitOutputStream bitOutputStream = new BitOutputStream(byteArrayOutputStream);
@@ -18,7 +18,7 @@ public class CubesSerializer
     return byteArrayOutputStream.toByteArray();
   }
 
-  public static void readFromBytes(BlockTerrainControl blockTerrain, byte[] bytes) {
+  public static void readFromBytes(TerrainControl blockTerrain, byte[] bytes) {
     BitInputStream bitInputStream = new BitInputStream(new ByteArrayInputStream(bytes));
     try {
       blockTerrain.read(bitInputStream);

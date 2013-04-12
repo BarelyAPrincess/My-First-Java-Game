@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/7/trunk/src/menu/transitions
+END
+DirectTransition.java
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/7/trunk/src/menu/transitions/DirectTransition.java
+END
+Transition.java
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/7/trunk/src/menu/transitions/Transition.java
+END
+SlideTransition.java
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/7/trunk/src/menu/transitions/SlideTransition.java
+END

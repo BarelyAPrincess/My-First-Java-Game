@@ -1,6 +1,5 @@
 package com.ufharmony.utils;
 
-import com.ufharmony.Vector3Int;
 
 public class ChunkPosition
 {

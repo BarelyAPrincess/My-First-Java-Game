@@ -1,8 +1,7 @@
 package com.ufharmony.blocks;
 
-import com.ufharmony.BlockManager;
-import com.ufharmony.BlockSkin;
-import com.ufharmony.BlockSkin_TextureLocation;
+import com.ufharmony.grid.BlockSkin;
+import com.ufharmony.grid.Skin_TextureLocation;
 
 public class BlockLeaves extends BlockBase
 {
@@ -11,6 +10,11 @@ public class BlockLeaves extends BlockBase
 		super( blockId );
 		
 		this.isLeaves = true;
-		BlockManager.register( BlockLeaves.class, blockId, new BlockSkin( new BlockSkin_TextureLocation( 4, 8 ), true ) );
+	}
+	
+	@Override
+	public BlockSkin getSkin()
+	{
+		return new BlockSkin( new Skin_TextureLocation( 4, 8 ), true );
 	}
 }

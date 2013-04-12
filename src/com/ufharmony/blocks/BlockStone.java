@@ -1,15 +1,18 @@
 package com.ufharmony.blocks;
 
-import com.ufharmony.BlockManager;
-import com.ufharmony.BlockSkin;
-import com.ufharmony.BlockSkin_TextureLocation;
+import com.ufharmony.grid.BlockSkin;
+import com.ufharmony.grid.Skin_TextureLocation;
 
 public class BlockStone extends BlockBase
 {
 	public BlockStone(int blockId)
 	{
 		super( blockId );
-		
-		BlockManager.register( BlockStone.class, blockId, new BlockSkin( new BlockSkin_TextureLocation( 1, 0 ), false ) );
+	}
+	
+	@Override
+	public BlockSkin getSkin()
+	{
+		return new BlockSkin( new Skin_TextureLocation( 1, 0 ), false );
 	}
 }

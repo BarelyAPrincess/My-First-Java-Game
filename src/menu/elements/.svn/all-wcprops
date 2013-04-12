@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/17/trunk/src/menu/elements
+END
+Button.java
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/17/trunk/src/menu/elements/Button.java
+END
+Carousel.java
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/12/trunk/src/menu/elements/Carousel.java
+END
+MenuElement.java
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/12/trunk/src/menu/elements/MenuElement.java
+END
+Label.java
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/14/trunk/src/menu/elements/Label.java
+END
+ValueChooser.java
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/14/trunk/src/menu/elements/ValueChooser.java
+END
+Panel.java
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/17/trunk/src/menu/elements/Panel.java
+END
+NSlider.java
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/17/trunk/src/menu/elements/NSlider.java
+END

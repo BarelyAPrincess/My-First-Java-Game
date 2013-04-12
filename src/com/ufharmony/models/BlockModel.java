@@ -1,6 +1,7 @@
 package com.ufharmony.models;
 
-import com.jme3.asset.AssetManager;
+import java.util.HashMap;
+
 import com.jme3.bounding.BoundingBox;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
@@ -9,11 +10,8 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
-import com.ufharmony.BlockTerrainControl;
-import com.ufharmony.CubesSettings;
-import com.ufharmony.Vector3Int;
-
-import java.util.HashMap;
+import com.ufharmony.grid.TerrainControl;
+import com.ufharmony.utils.Vector3Int;
 
 public class BlockModel
 {
@@ -28,7 +26,7 @@ public class BlockModel
 		this.blockClasses = blockClasses;
 	}
 	
-	public void addToBlockTerrain( BlockTerrainControl blockTerrain, Vector3Int location, Vector3Int size )
+	public void addToBlockTerrain( TerrainControl blockTerrain, Vector3Int location, Vector3Int size )
 	{
 		Spatial spatial = blockTerrain.getSettings().getAssetManager().loadModel( modelPath );
 		Vector3f bounds = getBounds( spatial );
@@ -48,7 +46,7 @@ public class BlockModel
 					{
 						tmpLocation.set( location ).addLocal( x, y, z );
 						Class blockClass = getMaterialBlockClass( collisionResult.getGeometry().getMaterial() );
-						blockTerrain.setBlock( tmpLocation, blockClass );
+						blockTerrain.setSquare( tmpLocation, blockClass );
 					}
 				}
 	}

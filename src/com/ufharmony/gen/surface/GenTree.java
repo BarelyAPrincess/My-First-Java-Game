@@ -3,13 +3,14 @@ package com.ufharmony.gen.surface;
 import java.util.Random;
 
 import com.ufharmony.Main;
-import com.ufharmony.Vector3Int;
-import com.ufharmony.Block.Face;
 import com.ufharmony.blocks.BlockBase;
 import com.ufharmony.blocks.BlockLeaves;
 import com.ufharmony.blocks.BlockSapling;
 import com.ufharmony.blocks.BlockWood;
 import com.ufharmony.gen.GenBase;
+import com.ufharmony.grid.Square;
+import com.ufharmony.grid.Square.Face;
+import com.ufharmony.utils.Vector3Int;
 
 public class GenTree extends GenBase
 {
@@ -62,12 +63,15 @@ public class GenTree extends GenBase
 					{
 						if ( var8 >= 0 && var8 < 256 )
 						{
-							BlockBase block = Main.getWorld().getBlockInst( var10, var8, var11 );
+							BlockBase square = null;
 							
-							if ( block != null )
-								var12 = block.getBlockId();
+							if ( Main.getWorld().getInst( var10, var8, var11 ) instanceof BlockBase )
+								square = (BlockBase) Main.getWorld().getInst( var10, var8, var11 );
 							
-							if ( block != null && !block.isLeaves() && !block.canSustainPlant( Face.Top, BlockSapling.class ) && !block.isWood() )
+							if ( square != null )
+								var12 = square.getSquareId();
+							
+							if ( square != null && !square.isLeaves() && !square.canSustainPlant( Face.Top, BlockSapling.class ) && !square.isWood() )
 							{
 								plant = false;
 							}
@@ -86,8 +90,11 @@ public class GenTree extends GenBase
 			}
 			else
 			{
+				BlockBase soil = null;
 				
-				BlockBase soil = Main.getWorld().getBlockInst( x, y - 1, z );
+				if ( Main.getWorld().getInst( x, y - 1, z ) instanceof BlockBase )
+					soil = (BlockBase) Main.getWorld().getInst( x, y - 1, z );
+				
 				boolean isSoil = ( soil != null && soil.canSustainPlant( Face.Top, BlockSapling.class ) );
 				
 				if ( isSoil && y < 256 - thisHeight - 1 )
@@ -112,11 +119,14 @@ public class GenTree extends GenBase
 							{
 								int var17 = var16 - z;
 								
-								BlockBase block = Main.getWorld().getBlockInst( var14, var11, var16 );
+								BlockBase square = null;
 								
-								if ( ( Math.abs( var15 ) != var13 || Math.abs( var17 ) != var13 || r.nextInt( 2 ) != 0 && var12 != 0 ) && ( block == null || block.canBeReplacedByLeaves() ) )
+								if ( Main.getWorld().getInst( var14, var11, var16 ) instanceof BlockBase )
+									square = (BlockBase) Main.getWorld().getInst( var14, var11, var16 );
+								
+								if ( ( Math.abs( var15 ) != var13 || Math.abs( var17 ) != var13 || r.nextInt( 2 ) != 0 && var12 != 0 ) && ( square == null || square.canBeReplacedByLeaves() ) )
 								{
-									Main.getWorld().setBlock( var14, var11, var16, BlockLeaves.class );
+									Main.getWorld().setSquare( var14, var11, var16, BlockLeaves.class );
 								}
 							}
 						}
@@ -124,35 +134,38 @@ public class GenTree extends GenBase
 					
 					for ( var11 = 0; var11 < thisHeight; ++var11 )
 					{
-						BlockBase block = Main.getWorld().getBlockInst( x, y + var11, z );
+						BlockBase square = null;
 						
-						var12 = ( block != null ) ? block.getBlockId() : 0;
+						if ( Main.getWorld().getInst( x, y + var11, z ) instanceof BlockBase )
+							square = (BlockBase) Main.getWorld().getInst( x, y + var11, z );
 						
-						if ( var12 == 0 || block == null || block.isLeaves() )
+						var12 = ( square != null ) ? square.getSquareId() : 0;
+						
+						if ( var12 == 0 || square == null || square.isLeaves() )
 						{
-							Main.getWorld().setBlock( x, y + var11, z, BlockWood.class );
+							Main.getWorld().setSquare( x, y + var11, z, BlockWood.class );
 							
 							/*
 							if ( this.vinesGrow && var11 > 0 )
 							{
-								if ( r.nextInt( 3 ) > 0 && par1World.isAirBlock( x - 1, y + var11, z ) )
+								if ( r.nextInt( 3 ) > 0 && par1World.isAirSquare( x - 1, y + var11, z ) )
 								{
-									this.setBlockAndMetadata( par1World, x - 1, y + var11, z, Block.vine.blockID, 8 );
+									this.setSquareAndMetadata( par1World, x - 1, y + var11, z, Square.vine.squareID, 8 );
 								}
 								
-								if ( r.nextInt( 3 ) > 0 && par1World.isAirBlock( x + 1, y + var11, z ) )
+								if ( r.nextInt( 3 ) > 0 && par1World.isAirSquare( x + 1, y + var11, z ) )
 								{
-									this.setBlockAndMetadata( par1World, x + 1, y + var11, z, Block.vine.blockID, 2 );
+									this.setSquareAndMetadata( par1World, x + 1, y + var11, z, Square.vine.squareID, 2 );
 								}
 								
-								if ( r.nextInt( 3 ) > 0 && par1World.isAirBlock( x, y + var11, z - 1 ) )
+								if ( r.nextInt( 3 ) > 0 && par1World.isAirSquare( x, y + var11, z - 1 ) )
 								{
-									this.setBlockAndMetadata( par1World, x, y + var11, z - 1, Block.vine.blockID, 1 );
+									this.setSquareAndMetadata( par1World, x, y + var11, z - 1, Square.vine.squareID, 1 );
 								}
 								
-								if ( r.nextInt( 3 ) > 0 && par1World.isAirBlock( x, y + var11, z + 1 ) )
+								if ( r.nextInt( 3 ) > 0 && par1World.isAirSquare( x, y + var11, z + 1 ) )
 								{
-									this.setBlockAndMetadata( par1World, x, y + var11, z + 1, Block.vine.blockID, 4 );
+									this.setSquareAndMetadata( par1World, x, y + var11, z + 1, Square.vine.squareID, 4 );
 								}
 							}
 							*/
@@ -171,25 +184,25 @@ public class GenTree extends GenBase
 							{
 								for ( var15 = z - var13; var15 <= z + var13; ++var15 )
 								{
-									Block block = Block.blocksList[par1World.getBlockId( var14, var11, var15 )];
-									if ( block != null && block.isLeaves( par1World, var14, var11, var15 ) )
+									Square square = Square.squaresList[par1World.getSquareId( var14, var11, var15 )];
+									if ( square != null && square.isLeaves( par1World, var14, var11, var15 ) )
 									{
-										if ( r.nextInt( 4 ) == 0 && par1World.getBlockId( var14 - 1, var11, var15 ) == 0 )
+										if ( r.nextInt( 4 ) == 0 && par1World.getSquareId( var14 - 1, var11, var15 ) == 0 )
 										{
 											this.growVines( par1World, var14 - 1, var11, var15, 8 );
 										}
 										
-										if ( r.nextInt( 4 ) == 0 && par1World.getBlockId( var14 + 1, var11, var15 ) == 0 )
+										if ( r.nextInt( 4 ) == 0 && par1World.getSquareId( var14 + 1, var11, var15 ) == 0 )
 										{
 											this.growVines( par1World, var14 + 1, var11, var15, 2 );
 										}
 										
-										if ( r.nextInt( 4 ) == 0 && par1World.getBlockId( var14, var11, var15 - 1 ) == 0 )
+										if ( r.nextInt( 4 ) == 0 && par1World.getSquareId( var14, var11, var15 - 1 ) == 0 )
 										{
 											this.growVines( par1World, var14, var11, var15 - 1, 1 );
 										}
 										
-										if ( r.nextInt( 4 ) == 0 && par1World.getBlockId( var14, var11, var15 + 1 ) == 0 )
+										if ( r.nextInt( 4 ) == 0 && par1World.getSquareId( var14, var11, var15 + 1 ) == 0 )
 										{
 											this.growVines( par1World, var14, var11, var15 + 1, 4 );
 										}
@@ -207,7 +220,7 @@ public class GenTree extends GenBase
 									if ( r.nextInt( 4 - var11 ) == 0 )
 									{
 										var13 = r.nextInt( 3 );
-										this.setBlockAndMetadata( par1World, x + Direction.offsetX[Direction.footInvisibleFaceRemap[var12]], y + thisHeight - 5 + var11, z + Direction.offsetZ[Direction.footInvisibleFaceRemap[var12]], Block.cocoaPlant.blockID, var13 << 2 | var12 );
+										this.setSquareAndMetadata( par1World, x + Direction.offsetX[Direction.footInvisibleFaceRemap[var12]], y + thisHeight - 5 + var11, z + Direction.offsetZ[Direction.footInvisibleFaceRemap[var12]], Square.cocoaPlant.squareID, var13 << 2 | var12 );
 									}
 								}
 							}

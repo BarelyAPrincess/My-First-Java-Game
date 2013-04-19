@@ -45,4 +45,5 @@ public abstract class Square
 	}
 	
 	abstract public Class<? extends Square> getParentClass();
+	abstract public void customizeMe( UniqueSquare uniqueSquare );
 }

@@ -428,20 +428,18 @@ public class Panel extends MenuElement
 			{
 				name = name.replace( menuPrefix, "" );
 				int step = 1;
-				switch ( name )
+				if ( name == "MouseWheelDown" )
 				{
-					case "MouseWheelDown":
-						step = -step;
-					case "MouseWheelUp":
-						processWheel( step );
-						break;
-					case "MouseLeft":
-					case "MouseRight":
-					case "MouseDown":
-					case "MouseUp":
-						// If the left button is pressed, it's a drag. Process it!
-						processDrag();
-						break;
+					step = -step;
+				}
+				else if ( name == "MouseWheelUp" )
+				{
+					processWheel( step );
+				}
+				else if ( name == "MouseLeft" || name == "MouseRight" || name == "MouseDown" || name == "MouseUp" )
+				{
+					// If the left button is pressed, it's a drag. Process it!
+					processDrag();
 				}
 			}
 		}
@@ -456,26 +454,23 @@ public class Panel extends MenuElement
 			if ( name.startsWith( menuPrefix ) )
 			{
 				name = name.replace( menuPrefix, "" );
-				switch ( name )
+				
+				if ( name == "LShift" )
 				{
-					case "LShift":
-						shiftDown = isPressed;
-						break;
-					case "LCtrl":
-						ctrlDown = isPressed;
-						break;
-					case "LButton":
-						// leftButtonDown = isPressed;
-						// Process the click (on or off).
-						processClick( isPressed );
-						
-						break;
-					case "RButton":
-						// On click:
-						if ( isPressed )
-						{}
-						
-						break;
+					shiftDown = isPressed;
+				}
+				else if ( name == "LCtrl" )
+				{
+					ctrlDown = isPressed;
+				}
+				else if ( name == "LButton" )
+				{
+					processClick( isPressed );
+				}
+				else if ( name == "RButton" )
+				{
+					if ( isPressed )
+					{}
 				}
 			}
 		}

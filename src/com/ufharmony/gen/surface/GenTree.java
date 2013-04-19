@@ -65,8 +65,8 @@ public class GenTree extends GenBase
 						{
 							BlockBase square = null;
 							
-							if ( Main.getWorld().getInst( var10, var8, var11 ) instanceof BlockBase )
-								square = (BlockBase) Main.getWorld().getInst( var10, var8, var11 );
+							if ( Main.getWorld().getInstance( var10, var8, var11 ) instanceof BlockBase )
+								square = (BlockBase) Main.getWorld().getInstance( var10, var8, var11 );
 							
 							if ( square != null )
 								var12 = square.getSquareId();
@@ -92,8 +92,8 @@ public class GenTree extends GenBase
 			{
 				BlockBase soil = null;
 				
-				if ( Main.getWorld().getInst( x, y - 1, z ) instanceof BlockBase )
-					soil = (BlockBase) Main.getWorld().getInst( x, y - 1, z );
+				if ( Main.getWorld().getInstance( x, y - 1, z ) instanceof BlockBase )
+					soil = (BlockBase) Main.getWorld().getInstance( x, y - 1, z );
 				
 				boolean isSoil = ( soil != null && soil.canSustainPlant( Face.Top, BlockSapling.class ) );
 				
@@ -121,8 +121,8 @@ public class GenTree extends GenBase
 								
 								BlockBase square = null;
 								
-								if ( Main.getWorld().getInst( var14, var11, var16 ) instanceof BlockBase )
-									square = (BlockBase) Main.getWorld().getInst( var14, var11, var16 );
+								if ( Main.getWorld().getInstance( var14, var11, var16 ) instanceof BlockBase )
+									square = (BlockBase) Main.getWorld().getInstance( var14, var11, var16 );
 								
 								if ( ( Math.abs( var15 ) != var13 || Math.abs( var17 ) != var13 || r.nextInt( 2 ) != 0 && var12 != 0 ) && ( square == null || square.canBeReplacedByLeaves() ) )
 								{
@@ -136,8 +136,8 @@ public class GenTree extends GenBase
 					{
 						BlockBase square = null;
 						
-						if ( Main.getWorld().getInst( x, y + var11, z ) instanceof BlockBase )
-							square = (BlockBase) Main.getWorld().getInst( x, y + var11, z );
+						if ( Main.getWorld().getInstance( x, y + var11, z ) instanceof BlockBase )
+							square = (BlockBase) Main.getWorld().getInstance( x, y + var11, z );
 						
 						var12 = ( square != null ) ? square.getSquareId() : 0;
 						

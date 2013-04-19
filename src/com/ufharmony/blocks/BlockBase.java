@@ -2,6 +2,7 @@ package com.ufharmony.blocks;
 
 import com.ufharmony.grid.BlockSkin;
 import com.ufharmony.grid.Square;
+import com.ufharmony.grid.UniqueSquare;
 
 public abstract class BlockBase extends Square
 {
@@ -92,5 +93,10 @@ public abstract class BlockBase extends Square
 	public Class<? extends Square> getParentClass()
 	{
 		return BlockBase.class;
+	}
+	
+	public void customizeMe( UniqueSquare uniqueSquare )
+	{
+		
 	}
 }

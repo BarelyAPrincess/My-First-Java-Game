@@ -14,7 +14,7 @@ import menu.utils.Materials;
  */
 public class Button extends Label
 {
-    private ArrayList<ActionListener> actionListeners = new ArrayList<>();
+    private ArrayList<ActionListener> actionListeners = new ArrayList<ActionListener>();
 
     /**
      * Creates a button with the specified text as a label.

@@ -1,0 +1,74 @@
+# Blender MTL File: 'chest.blend'
+# Material Count: 7
+newmtl 
+Ns 0
+Ka 0.000000 0.000000 0.000000
+Kd 0.8 0.8 0.8
+Ks 0.8 0.8 0.8
+d 1
+illum 2
+
+
+newmtl aa
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 0.592635 0.000000
+Ks 0.200000 0.200000 0.200000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd C:/Users/admin/Desktop/forziere.jpg
+
+
+newmtl forziere_angolo
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.144862 0.124375 0.124375
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+
+
+newmtl forziere_chiodi
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.293010 0.285736 0.285736
+Ks 0.300000 0.300000 0.300000
+Ni 1.000000
+d 1.000000
+illum 2
+
+
+newmtl forziere_ferro
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.073531 0.068680 0.068680
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+
+
+newmtl forziere_legno_sopra
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.709199 0.391111 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd C:/Users/admin/Desktop/forziere sopra.jpg
+
+
+newmtl forziere_sopra_lato_forziere_sopra.jpg
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 0.880702 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd C:/Users/admin/Desktop/forziere sopra.jpg
+
+

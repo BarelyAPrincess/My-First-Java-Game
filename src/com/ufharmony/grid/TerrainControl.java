@@ -10,7 +10,6 @@ import com.jme3.scene.control.AbstractControl;
 import com.jme3.scene.control.Control;
 import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
-import com.ufharmony.blocks.BlockBase;
 import com.ufharmony.network.BitInputStream;
 import com.ufharmony.network.BitOutputStream;
 import com.ufharmony.network.BitSerializable;
@@ -19,46 +18,61 @@ import com.ufharmony.utils.Vector3Int;
 
 public class TerrainControl extends AbstractControl implements BitSerializable
 {
-	private GridSettings settings;
-	private ChunkControl[][][] chunks;
-	private ArrayList<ChunkListener> chunkListeners = new ArrayList();
+	private static GridSettings settings;
+	private ChunkManager chunkMan = new ChunkManager();
+	private static TerrainControl instance = null;
 	
-	public TerrainControl(GridSettings settings, Vector3Int chunksCount)
+	public TerrainControl(GridSettings settings)
 	{
 		this.settings = settings;
-		initializeChunks( chunksCount );
+		instance = this;
+		
+		// Basic code that makes a new blank world
+		
+		for ( int x = -3; x < 4; x++ )
+		{
+			for ( int z = -3; z < 4; z++ )
+			{
+				chunkMan.set( x, 0, z, new ChunkControl( this, x, 0, z ) );
+				chunkMan.get( x, 0, z ).makeTerrain();
+			}
+		}
 	}
 	
-	private void initializeChunks( Vector3Int chunksCount )
+	public static TerrainControl getInstance()
 	{
-		chunks = new ChunkControl[chunksCount.getX()][chunksCount.getY()][chunksCount.getZ()];
-		for ( int x = 0; x < chunks.length; x++ )
-			for ( int y = 0; y < chunks[0].length; y++ )
-				for ( int z = 0; z < chunks[0][0].length; z++ )
-				{
-					ChunkControl chunk = new ChunkControl( this, x, y, z );
-					chunks[x][y][z] = chunk;
-				}
+		return instance;
 	}
 	
-	public void setSpatial( Spatial spatial )
+	public void setSpatial( final Spatial spatial )
 	{
-		Spatial oldSpatial = this.spatial;
+		final Spatial oldSpatial = this.spatial;
 		super.setSpatial( spatial );
-		for ( int x = 0; x < chunks.length; x++ )
-			for ( int y = 0; y < chunks[0].length; y++ )
-				for ( int z = 0; z < chunks[0][0].length; z++ )
-					if ( spatial == null )
+		
+		chunkMan.forEach( new AbstractForEach()
+		{
+			public void forChunk( ChunkControl squareChunk )
+			{
+				if ( spatial == null )
 					{
-						oldSpatial.removeControl( chunks[x][y][z] );
+						oldSpatial.removeControl( squareChunk );
 					}
 					else
-						spatial.addControl( chunks[x][y][z] );
+						spatial.addControl( squareChunk );
+			}
+		} );
 	}
 	
 	protected void controlUpdate( float lastTimePerFrame )
 	{
-		updateSpatial();
+		try
+		{
+			chunkMan.chunkPing( lastTimePerFrame );
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	protected void controlRender( RenderManager renderManager, ViewPort viewPort )
@@ -70,19 +84,19 @@ public class TerrainControl extends AbstractControl implements BitSerializable
 		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 	
-	public Square getInst( int x, int y, int z )
+	public Square getInstance( int x, int y, int z )
 	{
-		return getInst( new Vector3Int( x, y, z ) );
+		return getInstance( new Vector3Int( x, y, z ) );
 	}
 	
-	public Square getInst( Vector3Int location )
+	public Square getInstance( Vector3Int location )
 	{
 		try
 		{
 			Terrain_LocalSquareState localSquareState = getLocalSquareState( location );
 			if ( localSquareState != null )
 			{
-				return localSquareState.getSquare().getParent();
+				return localSquareState.getSquare().getInstance();
 			}
 			
 			return null;
@@ -115,7 +129,7 @@ public class TerrainControl extends AbstractControl implements BitSerializable
 	
 	public byte getSquareId( Vector3Int location )
 	{
-		return getSquare( location ).getParent().getId();
+		return getSquare( location ).getInstance().getId();
 	}
 	
 	public void setSquareArea( Vector3Int location, Vector3Int size, Class<? extends Square> SquareClass )
@@ -168,44 +182,46 @@ public class TerrainControl extends AbstractControl implements BitSerializable
 	
 	private Terrain_LocalSquareState getLocalSquareState( Vector3Int squareLocation )
 	{
-		if ( squareLocation.hasNegativeCoordinate() )
-		{
-			return null;
-		}
 		ChunkControl chunk = getChunk( squareLocation );
+		
 		if ( chunk != null )
 		{
 			Vector3Int localSquareLocation = getLocalSquareLocation( squareLocation, chunk );
 			return new Terrain_LocalSquareState( chunk, localSquareLocation );
 		}
+		
 		return null;
 	}
 	
 	public ChunkControl getChunk( Vector3Int squareLocation )
 	{
-		if ( squareLocation.hasNegativeCoordinate() )
-		{
-			return null;
-		}
 		Vector3Int chunkLocation = getChunkLocation( squareLocation );
-		if ( isValidChunkLocation( chunkLocation ) )
-		{
-			return chunks[chunkLocation.getX()][chunkLocation.getY()][chunkLocation.getZ()];
-		}
-		return null;
+		
+		return chunkMan.get( chunkLocation );
 	}
 	
-	private boolean isValidChunkLocation( Vector3Int location )
+	public boolean isValidChunkLocation( Vector3Int location )
 	{
-		return Util.isValidIndex( chunks, location );
+		return chunkMan.isValidChunk( location );
 	}
 	
 	private Vector3Int getChunkLocation( Vector3Int squareLocation )
 	{
 		Vector3Int chunkLocation = new Vector3Int();
-		int chunkX = squareLocation.getX() / settings.getChunkSizeX();
-		int chunkY = squareLocation.getY() / settings.getChunkSizeY();
-		int chunkZ = squareLocation.getZ() / settings.getChunkSizeZ();
+			
+		int chunkX = squareLocation.getX() / (settings.getChunkSizeX());
+		int chunkY = squareLocation.getY() / (settings.getChunkSizeY());
+		int chunkZ = squareLocation.getZ() / (settings.getChunkSizeZ());
+		
+		if ( squareLocation.getX() < 0 )
+			chunkX = 0 - chunkX - 1;
+		
+		if ( squareLocation.getY() < 0 )
+			chunkY = 0 - chunkY - 1;
+		
+		if ( squareLocation.getZ() < 0 )
+			chunkZ = 0 - chunkZ - 1;
+		
 		chunkLocation.set( chunkX, chunkY, chunkZ );
 		return chunkLocation;
 	}
@@ -220,44 +236,14 @@ public class TerrainControl extends AbstractControl implements BitSerializable
 		return localLocation;
 	}
 	
-	public boolean updateSpatial()
-	{
-		boolean wasUpdatedNeeded = false;
-		for ( int x = 0; x < chunks.length; x++ )
-		{
-			for ( int y = 0; y < chunks[0].length; y++ )
-			{
-				for ( int z = 0; z < chunks[0][0].length; z++ )
-				{
-					ChunkControl chunk = chunks[x][y][z];
-					if ( chunk.updateSpatial() )
-					{
-						wasUpdatedNeeded = true;
-						for ( int i = 0; i < chunkListeners.size(); i++ )
-						{
-							ChunkListener squareTerrainListener = (ChunkListener) chunkListeners.get( i );
-							squareTerrainListener.onSpatialUpdated( chunk );
-						}
-					}
-				}
-			}
-		}
-		return wasUpdatedNeeded;
-	}
-	
-	public void addChunkListener( ChunkListener squareChunkListener )
-	{
-		chunkListeners.add( squareChunkListener );
-	}
-	
-	public void removeChunkListener( ChunkListener squareChunkListener )
-	{
-		chunkListeners.remove( squareChunkListener );
-	}
-	
-	public GridSettings getSettings()
+	public static GridSettings getSettings()
 	{
 		return settings;
+	}
+	
+	public ChunkManager getChunkManager()
+	{
+		return chunkMan;
 	}
 	
 	public void setSquaresFromHeightmap( Vector3Int location, String heightmapPath, int maximumHeight, Class<? extends Square> squareClass )
@@ -345,7 +331,7 @@ public class TerrainControl extends AbstractControl implements BitSerializable
 	
 	public TerrainControl clone()
 	{
-		TerrainControl squareTerrain = new TerrainControl( settings, new Vector3Int() );
+		TerrainControl squareTerrain = new TerrainControl( settings );
 		squareTerrain.setSquaresFromTerrain( this );
 		return squareTerrain;
 	}
@@ -357,6 +343,7 @@ public class TerrainControl extends AbstractControl implements BitSerializable
 	
 	public void write( BitOutputStream outputStream )
 	{
+		/*
 		outputStream.writeInteger( chunks.length );
 		outputStream.writeInteger( chunks[0].length );
 		outputStream.writeInteger( chunks[0][0].length );
@@ -364,10 +351,12 @@ public class TerrainControl extends AbstractControl implements BitSerializable
 			for ( int y = 0; y < chunks[0].length; y++ )
 				for ( int z = 0; z < chunks[0][0].length; z++ )
 					chunks[x][y][z].write( outputStream );
+					*/
 	}
 	
 	public void read( BitInputStream inputStream ) throws IOException
 	{
+		/*
 		int chunksCountX = inputStream.readInteger();
 		int chunksCountY = inputStream.readInteger();
 		int chunksCountZ = inputStream.readInteger();
@@ -376,5 +365,6 @@ public class TerrainControl extends AbstractControl implements BitSerializable
 			for ( int y = 0; y < chunksCountY; y++ )
 				for ( int z = 0; z < chunksCountZ; z++ )
 					chunks[x][y][z].read( inputStream );
+					*/
 	}
 }

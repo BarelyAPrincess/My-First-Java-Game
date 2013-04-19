@@ -1,14 +1,12 @@
 package com.ufharmony.grid;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -16,8 +14,8 @@ import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.SceneProcessor;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.util.SkyFactory;
+import com.jme3.water.WaterFilter;
 import com.ufharmony.Main;
-import com.ufharmony.blocks.BlockBase;
 import com.ufharmony.utils.ChunkPosition;
 import com.ufharmony.utils.Vector3Int;
 
@@ -84,7 +82,7 @@ public class TerrainHelper
 							int var22 = (int) (int) Math.floor( var15 );
 							int var23 = (int) (int) Math.floor( var17 );
 							int var24 = (int) (int) Math.floor( var19 );
-							Square var26 = Main.getWorld().getInst( var22, var23, var24 );
+							Square var26 = Main.getWorld().getInstance( var22, var23, var24 );
 							
 							if ( var26 != null )
 							{
@@ -123,17 +121,17 @@ public class TerrainHelper
 			var4 = cp.x;
 			var5 = cp.y;
 			var6 = cp.z;
-			Square var25 = Main.getWorld().getInst( var4, var5, var6 );
+			Square var25 = Main.getWorld().getInstance( var4, var5, var6 );
 			
 			if ( var25 != null )
 			{
 				Main.getWorld().removeSquare( var4, var5, var6 );
-				//var25.onSquareDestroyedByExplosion();
+				// var25.onSquareDestroyedByExplosion();
 			}
 		}
 	}
 	
-	public static void initializeEnvironment( SimpleApplication simpleApplication )
+	public static void initializeEnvironment( Main simpleApplication )
 	{
 		DirectionalLight directionalLight = new DirectionalLight();
 		directionalLight.setDirection( lightDirection );
@@ -145,15 +143,35 @@ public class TerrainHelper
 		pssmShadowRenderer.setDirection( lightDirection );
 		pssmShadowRenderer.setShadowIntensity( 0.3F );
 		simpleApplication.getViewPort().addProcessor( pssmShadowRenderer );
+		
+		//FilterPostProcessor fpp = new FilterPostProcessor( simpleApplication.getAssetManager() );
+		//FogFilter fog = new FogFilter();
+		//fog.setFogColor( new ColorRGBA( 0.0f, 0.0f, 0.0f, 0.8f ) );
+		//fog.setFogDistance( 100 );
+		//fog.setFogDensity( 2.0f );
+		//fpp.addFilter( fog );
+		//simpleApplication.getViewPort().addProcessor( fpp );
 	}
 	
-	public static void initializeWater( SimpleApplication simpleApplication )
+	private void setUpLight()
 	{
-		// WaterFilter waterFilter = new WaterFilter( simpleApplication.getRootNode(), lightDirection );
-		// getFilterPostProcessor( simpleApplication ).addFilter( waterFilter );
+		AmbientLight al = new AmbientLight();
+		al.setColor( ColorRGBA.White.mult( 1.3f ) );
+		Main.getRootNode().addLight( al );
+		
+		DirectionalLight dl = new DirectionalLight();
+		dl.setColor( ColorRGBA.White );
+		dl.setDirection( new Vector3f( 2.8f, -2.8f, -2.8f ).normalizeLocal() );
+		Main.getRootNode().addLight( dl );
 	}
 	
-	private static FilterPostProcessor getFilterPostProcessor( SimpleApplication simpleApplication )
+	public static void initializeWater( Main simpleApplication )
+	{
+		WaterFilter waterFilter = new WaterFilter( simpleApplication.getRootNode(), lightDirection );
+		getFilterPostProcessor( simpleApplication ).addFilter( waterFilter );
+	}
+	
+	private static FilterPostProcessor getFilterPostProcessor( Main simpleApplication )
 	{
 		List sceneProcessors = simpleApplication.getViewPort().getProcessors();
 		for ( int i = 0; i < sceneProcessors.size(); i++ )

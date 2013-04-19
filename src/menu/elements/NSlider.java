@@ -18,7 +18,7 @@ import menu.utils.Materials;
 public class NSlider extends MenuElement
 {
 
-    private ArrayList<ActionListener> actionListeners = new ArrayList<>();
+    private ArrayList<ActionListener> actionListeners = new ArrayList<ActionListener>();
     private float minValue = 0.05f;
     private int n = 0;
     private int draggedValue = -1;

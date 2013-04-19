@@ -13,7 +13,7 @@ import java.util.Arrays;
  */
 public class Carousel<T extends Node> extends MenuElement
 {
-    private ArrayList<T> elements = new ArrayList<>();
+    private ArrayList<T> elements = new ArrayList<T>();
     private float radius = 2f;
     private int currentIndex = 0;
     private boolean horizontal = true;

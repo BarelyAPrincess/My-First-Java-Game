@@ -35,9 +35,9 @@ public class Jme3DFont
 	// The Java3D 3DFont.
 	private Font3D font3D;
 	// This map allows to lasyload meshes, holding one mesh per character.
-	private Map<Character, Mesh> meshesMap = new HashMap<>();
+	private Map<Character, Mesh> meshesMap = new HashMap<Character, Mesh>();
 	// This map stores each character (3D, hence the vector3f) size.
-	private Map<Character, Vector3f> sizeMap = new HashMap<>();
+	private Map<Character, Vector3f> sizeMap = new HashMap<Character, Vector3f>();
 	// Determines wether this font is extruded or flat.
 	private boolean extruded;
 	
@@ -126,12 +126,12 @@ public class Jme3DFont
 		
 		// Now, coords contains x,y,z for each vertex of each triangle; hence, 9 floats per triangle.
 		// Separate those coordinates into 3 lists:
-		ArrayList<Vector3f> frontVertices = new ArrayList<>();
-		ArrayList<Vector3f> sideVertices = new ArrayList<>();
-		ArrayList<Vector3f> backVertices = new ArrayList<>();
+		ArrayList<Vector3f> frontVertices = new ArrayList<Vector3f>();
+		ArrayList<Vector3f> sideVertices = new ArrayList<Vector3f>();
+		ArrayList<Vector3f> backVertices = new ArrayList<Vector3f>();
 		// Keep track of side normals - if needed - and only them,
 		// since front and back are along the Z axis.
-		ArrayList<Vector3f> sideNormals = new ArrayList<>();
+		ArrayList<Vector3f> sideNormals = new ArrayList<Vector3f>();
 		
 		// For each triangle (Triplet of points, hence 9-plet of coord):
 		for ( int i = 0; i < coords.length; i += 9 )
@@ -168,7 +168,7 @@ public class Jme3DFont
 			}
 		}
 		// Register Normals.
-		ArrayList<Vector3f> normals = new ArrayList<>();
+		ArrayList<Vector3f> normals = new ArrayList<Vector3f>();
 		// For the front, put 0,0,1.
 		for ( int i = 0; i < frontVertices.size(); i++ )
 		{
@@ -253,9 +253,13 @@ public class Jme3DFont
 			InputStream is = Jme3DFont.class.getResourceAsStream( name );
 			f = Font.createFont( Font.TRUETYPE_FONT, is );
 		}
-		catch ( FontFormatException | IOException ex )
+		catch ( IOException ex )
 		{
 			Logger.getLogger( Jme3DFont.class.getName() ).log( Level.SEVERE, null, ex );
+		}
+		catch ( FontFormatException ex )
+		{
+			Logger.getLogger( Jme3DFont.class.getName() ).log( Level.SEVERE, null, ex );	
 		}
 		
 		return f;

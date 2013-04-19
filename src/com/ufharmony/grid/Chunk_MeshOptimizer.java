@@ -21,7 +21,7 @@ public class Chunk_MeshOptimizer
 		public boolean shouldFaceBeAdded( ChunkControl chunk, Vector3Int location, Square.Face face )
 		{
 			UniqueSquare neighborSquare = chunk.getNeighborSquare( location, face );
-			if ( neighborSquare != null )
+			if ( neighborSquare != null && neighborSquare.getParentClass().equals( BlockBase.class ) )
 			{
 				if ( neighborSquare.getSkin().isTransparent() != neighborSquare.getSkin().isTransparent() )
 				{

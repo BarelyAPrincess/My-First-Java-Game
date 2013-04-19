@@ -1,0 +1,37 @@
+# Blender MTL File: 'baum.blend'
+# Material Count: 3
+newmtl Blatt
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.121917 0.303190 0.090736
+Ks 0.100000 0.100000 0.100000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd baum.blend/blatt2.png
+map_d baum.blend/blatt2.png
+
+
+newmtl Blatt_blatt2.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.121917 0.303190 0.090736
+Ks 0.100000 0.100000 0.100000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd baum.blend/blatt2.png
+map_d baum.blend/blatt2.png
+
+
+newmtl Stamm.Rinde
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd baum.blend/rinde_3d-hobby-art.de.jpg
+
+

@@ -1,0 +1,46 @@
+# Blender MTL File: 'rainbowDash.blend'
+# Material Count: 4
+newmtl Red_dash.png
+Ns 454.081580
+Ka 0.009015 0.009015 0.009015
+Kd 1.000000 0.225977 0.366886
+Ks 0.116839 0.087861 0.105370
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd E:\blenderProject\dash.png
+
+
+newmtl Skin_dash.png
+Ns 292.156863
+Ka 0.009015 0.009015 0.009015
+Kd 0.341914 0.708376 0.938686
+Ks 0.018055 0.018055 0.018055
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd E:\blenderProject\dash.png
+
+
+newmtl black_dash.png
+Ns 96.078431
+Ka 0.009015 0.009015 0.009015
+Kd 0.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd E:\blenderProject\dash.png
+
+
+newmtl eye_dash.png
+Ns 96.078431
+Ka 0.009015 0.009015 0.009015
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 0
+map_Kd E:\blenderProject\dash.png
+
+

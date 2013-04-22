@@ -20,7 +20,7 @@ public class BlockGrass extends BlockBase
 		{
 			protected int getTextureLocationIndex( ChunkControl chunk, Vector3Int blockLocation, Square.Face face )
 			{
-				if ( chunk.isSquareOnSurface( blockLocation ) )
+				if ( true )// chunk.isSquareOnSurface( blockLocation ) )
 				{
 					switch ( face )
 					{

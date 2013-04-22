@@ -1,0 +1,46 @@
+<skeleton>
+	<bones>
+		<bone id="4" name="Tail0">
+			<position x="0.000000" y="0.000744" z="0.002085"/>
+			<rotation angle="0.006329">
+				<axis x="1.000000" y="0.000000" z="0.000000"/>
+			</rotation>
+		</bone>
+		<bone id="3" name="Tail1">
+			<position x="0.000000" y="0.375821" z="0.000000"/>
+			<rotation angle="0.000000">
+				<axis x="1.000000" y="0.000000" z="0.000000"/>
+			</rotation>
+		</bone>
+		<bone id="2" name="Tail2">
+			<position x="0.000000" y="0.432372" z="-0.000000"/>
+			<rotation angle="0.000000">
+				<axis x="1.000000" y="0.000000" z="0.000000"/>
+			</rotation>
+		</bone>
+		<bone id="1" name="Tail3">
+			<position x="0.000000" y="0.388951" z="-0.000000"/>
+			<rotation angle="0.000000">
+				<axis x="-1.000000" y="0.000000" z="0.000000"/>
+			</rotation>
+		</bone>
+		<bone id="0" name="Tail4">
+			<position x="0.000000" y="0.415168" z="0.000000"/>
+			<rotation angle="0.000000">
+				<axis x="-1.000000" y="0.000000" z="0.000000"/>
+			</rotation>
+		</bone>
+	</bones>
+	<bonehierarchy>
+		<boneparent bone="Tail1" parent="Tail0" />
+		<boneparent bone="Tail2" parent="Tail1" />
+		<boneparent bone="Tail3" parent="Tail2" />
+		<boneparent bone="Tail4" parent="Tail3" />
+	</bonehierarchy>
+	<animations>
+		<animation name="ragdoll" length="0.000000">
+			<tracks>
+			</tracks>
+		</animation>
+	</animations>
+</skeleton>

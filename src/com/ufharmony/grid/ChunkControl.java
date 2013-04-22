@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -17,6 +18,7 @@ import com.jme3.scene.control.Control;
 import com.ufharmony.Main;
 import com.ufharmony.blocks.BlockBase;
 import com.ufharmony.blocks.BlockBedrock;
+import com.ufharmony.blocks.BlockBrick;
 import com.ufharmony.blocks.BlockDirt;
 import com.ufharmony.blocks.BlockGrass;
 import com.ufharmony.blocks.BlockSponge;
@@ -25,6 +27,7 @@ import com.ufharmony.network.BitInputStream;
 import com.ufharmony.network.BitOutputStream;
 import com.ufharmony.network.BitSerializable;
 import com.ufharmony.objects.ObjectBase;
+import com.ufharmony.objects.ObjectDerpy;
 import com.ufharmony.objects.ObjectTree;
 import com.ufharmony.utils.Vector3Int;
 
@@ -49,13 +52,19 @@ public class ChunkControl extends AbstractControl implements BitSerializable
 		location.set( x, y, z );
 		squareLocation.set( location.mult( terrain.getSettings().getChunkSizeX(), terrain.getSettings().getChunkSizeY(), terrain.getSettings().getChunkSizeZ() ) );
 		node.setLocalTranslation( new Vector3f( squareLocation.getX(), squareLocation.getY(), squareLocation.getZ() ).mult( terrain.getSettings().getSquareSize() ) );
-		squares_IsOnSurface = new boolean[terrain.getSettings().getChunkSizeX()][terrain.getSettings().getChunkSizeY()][terrain.getSettings().getChunkSizeZ()];
 		
+		squares_IsOnSurface = new boolean[terrain.getSettings().getChunkSizeX()][terrain.getSettings().getChunkSizeY()][terrain.getSettings().getChunkSizeZ()];
 		gridLayout = new UniqueSquare[terrain.getSettings().getChunkSizeX()][terrain.getSettings().getChunkSizeY()][terrain.getSettings().getChunkSizeZ()];
 	}
 	
 	public void makeTerrain()
 	{
+		node.detachAllChildren();
+		optimizedGeometry = null;
+		squares_IsOnSurface = new boolean[terrain.getSettings().getChunkSizeX()][terrain.getSettings().getChunkSizeY()][terrain.getSettings().getChunkSizeZ()];
+		gridLayout = new UniqueSquare[terrain.getSettings().getChunkSizeX()][terrain.getSettings().getChunkSizeY()][terrain.getSettings().getChunkSizeZ()];
+		needsMeshUpdate = true;
+		
 		Noise noise = new Noise( null, 0.02f, 16, 16 );
 		noise.initialise();
 		float gridMinimum = noise.getMinimum();
@@ -67,11 +76,9 @@ public class ChunkControl extends AbstractControl implements BitSerializable
 			for ( int z = 0; z < row.length; z++ )
 			{
 				int squareHeight = (int) ( ( row[z] - gridMinimum ) * 100.0F / gridLargestDifference / 100.0F * 16 ) + 1;
-				Vector3Int tmpLocation = new Vector3Int();
 				for ( int y = 0; y < squareHeight; y++ )
 				{
-					tmpLocation.set( location.getX() + x, location.getY() + y, location.getZ() + z );
-					setSquare( tmpLocation, BlockStone.class );
+					setSquare( new Vector3Int( x, y, z ), BlockStone.class );
 				}
 			}
 		}
@@ -100,13 +107,15 @@ public class ChunkControl extends AbstractControl implements BitSerializable
 				setSquare( new Vector3Int( t.getX(), 1, t.getZ() ), BlockBedrock.class );
 				setSquare( new Vector3Int( t.getX(), 2, t.getZ() ), BlockBedrock.class );
 				
-				if ( Util.r.nextInt( 100 ) == 0 )
+				if ( Util.r.nextInt( 300 ) == 0 )
 					setSquare( getHighestSquareAt( new Vector3Int( x, 0, z ) ).add( 0, 1, 0 ), ObjectTree.class );
 			}
 		}
 		
+		Vector3Int t = getHighestSquareAt( new Vector3Int( 5, 1, 5 ) ).add( 0, 5, 0 );
+		
 		// setSquare( getHighestSquareAt( new Vector3Int( 5, 0, 0 ) ).add( 0, 1, 0 ), ObjectChest.class );
-		// setSquare( getHighestSquareAt( new Vector3Int( 0, 0, 5 ) ).add( 0, 1, 0 ), ObjectDerpy.class );
+		//setSquare( getHighestSquareAt( t ).add( 0, 1, 0 ), ObjectDerpy.class );
 	}
 	
 	public void setSpatial( Spatial spatial )
@@ -208,7 +217,7 @@ public class ChunkControl extends AbstractControl implements BitSerializable
 	{
 		if ( isValidSquareLocation( location ) )
 		{
-			gridLayout[location.getX()][location.getY()][location.getZ()] = new UniqueSquare( Square.getGlobalObject( theClass ) );
+			gridLayout[location.getX()][location.getY()][location.getZ()] = new UniqueSquare( Square.getGlobalObject( theClass ), location );
 			
 			updateSquareState( location );
 			needsMeshUpdate = true;
@@ -234,6 +243,8 @@ public class ChunkControl extends AbstractControl implements BitSerializable
 	{
 		if ( needsMeshUpdate )
 		{
+			needsMeshUpdate = false;
+			
 			System.out.println( "Updating chunk mesh at: " + getLocation() );
 			
 			TerrainControl squareTerrain = getTerrain();
@@ -262,11 +273,13 @@ public class ChunkControl extends AbstractControl implements BitSerializable
 								if ( mat_default == null )
 									mat_default = new Material( Main.getInstance().getAssetManager(), "Common/MatDefs/Misc/ShowNormals.j3md" );
 								
-								derpy.setMaterial( mat_default );
+								//derpy.setMaterial( mat_default );
 								
 								derpy.setLocalTranslation( objectLocation.add( us.getOffset().divide( terrain.getSettings().getSquareSize() ) ) );
 								
 								derpy.setLocalScale( us.getScale() / terrain.getSettings().getSquareSize() );
+								
+								derpy.setLocalRotation( new Quaternion( 0, 0, 0, 1 ) );
 								
 								node.attachChild( derpy );
 								
@@ -287,20 +300,6 @@ public class ChunkControl extends AbstractControl implements BitSerializable
 				}
 			}
 			
-			updateMesh();
-			
-			optimizedGeometry.setMesh( Chunk_MeshOptimizer.generateOptimizedMesh( this ) );
-			needsMeshUpdate = false;
-			return true;
-		}
-		
-		return false;
-	}
-	
-	public void updateMesh()
-	{
-		if ( needsMeshUpdate )
-		{
 			if ( optimizedGeometry == null )
 			{
 				optimizedGeometry = new Geometry( "" );
@@ -310,7 +309,12 @@ public class ChunkControl extends AbstractControl implements BitSerializable
 				
 				setSpatial( Main.getTerrainNode() );
 			}
+			
+			optimizedGeometry.setMesh( Chunk_MeshOptimizer.generateOptimizedMesh( this ) );
+			return true;
 		}
+		
+		return false;
 	}
 	
 	public void updateSquareState( Vector3Int location )
@@ -334,6 +338,9 @@ public class ChunkControl extends AbstractControl implements BitSerializable
 		UniqueSquare neighborSquare_Top = terrain.getSquare( getNeighborSquareWorldLocation( location, Square.Face.Top ) );
 		
 		squares_IsOnSurface[location.getX()][location.getY()][location.getZ()] = ( neighborSquare_Top == null ? true : false );
+		
+		if (gridLayout[location.getX()][location.getY()][location.getZ()] != null)
+			gridLayout[location.getX()][location.getY()][location.getZ()].updateInformation( location );
 	}
 	
 	public boolean isSquareOnSurface( Vector3Int location )

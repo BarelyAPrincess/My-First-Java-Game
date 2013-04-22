@@ -26,17 +26,6 @@ public class TerrainControl extends AbstractControl implements BitSerializable
 	{
 		this.settings = settings;
 		instance = this;
-		
-		// Basic code that makes a new blank world
-		
-		for ( int x = -3; x < 4; x++ )
-		{
-			for ( int z = -3; z < 4; z++ )
-			{
-				chunkMan.set( x, 0, z, new ChunkControl( this, x, 0, z ) );
-				chunkMan.get( x, 0, z ).makeTerrain();
-			}
-		}
 	}
 	
 	public static TerrainControl getInstance()

@@ -2,13 +2,20 @@ package com.ufharmony.grid;
 
 import java.util.ArrayList;
 
+import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
+import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.debug.Arrow;
 import com.jme3.util.BufferUtils;
+import com.ufharmony.Extras;
+import com.ufharmony.Main;
 import com.ufharmony.blocks.BlockBase;
-import com.ufharmony.grid.Square.Face;
 import com.ufharmony.utils.Vector3Int;
 
 public class Chunk_MeshOptimizer
@@ -112,10 +119,159 @@ public class Chunk_MeshOptimizer
 	
 	public static BlockProperties[][][] squareProperties;
 	
-	private static void loadMeshDataNEW( ChunkControl chunk, Chunk_MeshMerger meshMerger )
+	private static void makeArrow( Node n, ColorRGBA c, Vector3f l )
 	{
-		ArrayList verticeList = new ArrayList();
-		ArrayList textureCoordinateList = new ArrayList();
+		if ( n == null || c == null || l == null )
+			return;
+		
+		Arrow arrow = new Arrow( new Vector3f( 0, 1, 0 ) );
+		Geometry marker = new Geometry( "Marker" );
+		marker.setMesh( arrow );
+		
+		Material mat = new Material( Main.getInstance().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md" );
+		mat.setColor( "Color", c );
+		mat.getAdditionalRenderState().setBlendMode( BlendMode.Alpha );
+		
+		marker.setMaterial( mat );
+		
+		n.attachChild( marker );
+		
+		marker.setLocalTranslation( l );
+	}
+	
+	private static void loadMeshData( ChunkControl chunk, Chunk_MeshMerger meshMerger )
+	{
+		ArrayList<Vector3f> verticeList = new ArrayList<Vector3f>();
+		ArrayList<Vector2f> textureCoordinateList = new ArrayList<Vector2f>();
+		ArrayList<Integer> indicesList = new ArrayList<Integer>();
+		TerrainControl squareTerrain = chunk.getTerrain();
+		Vector3Int tmpLocation = new Vector3Int();
+		float squareSize = TerrainControl.getSettings().getSquareSize();
+		
+		for ( int x1 = 0; x1 < TerrainControl.getSettings().getChunkSizeX(); x1 = x1 + 2 )
+		{
+			for ( int z1 = 0; z1 < TerrainControl.getSettings().getChunkSizeZ(); z1 = z1 + 2 )
+			{
+				for ( int y1 = TerrainControl.getSettings().getChunkSizeY() - 1; y1 >= 0; y1-- )
+				{
+					tmpLocation.set( x1, y1, z1 );
+					UniqueSquare us = chunk.getSquare( tmpLocation );
+					
+					if ( us != null && us.getParentClass().equals( BlockBase.class ) )
+					{
+						Vector3f point = us.locationReal;
+						//Vector3f point = new Vector3f( tmpLocation.getX(), tmpLocation.getY(), tmpLocation.getZ() ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
+						
+						// Each vector around this point to find
+						Vector2f xYS[] = new Vector2f[]{new Vector2f(-1, 0),new Vector2f(-1, -1),new Vector2f(0, -1),new Vector2f(1, -1),new Vector2f(1, 0),new Vector2f(1, 1),new Vector2f(0, 1),new Vector2f(-1, 1)};
+						Vector3f pointArray[] = new Vector3f[8];
+						int cc = 0;
+						
+						for ( Vector2f xY: xYS )
+						{
+							for ( int y2 = TerrainControl.getSettings().getChunkSizeY() - 1; y2 >= 0; y2-- )
+							{
+								UniqueSquare us2 = null;
+								
+								Vector3Int newLocation = tmpLocation.setY( 0 ).add( new Vector3Int( (int) xY.getX(), y2, (int) xY.getY() ) );
+								
+								if ( newLocation.getX() < 0 || newLocation.getY() < 0 || newLocation.getX() > 15 || newLocation.getY() > 15 )
+								{
+									us2 = squareTerrain.getSquare( newLocation.add( chunk.getLocation() ) );
+								}
+								else
+								{
+									us2 = chunk.getSquare( newLocation );
+								}
+								
+								if ( us2 != null )
+								{
+									//pointArray[cc] = us2.locationReal;
+									pointArray[cc] = point.clone().setY( 0 ).add( new Vector3f( xY.getX(), y2, xY.getY() ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) ) );
+									break;
+								}
+							}
+							
+							if ( !Extras.isValidIndex(pointArray, cc) || pointArray[cc] == null )
+								pointArray[cc] = point.add( new Vector3f( xY.getX(), 0, xY.getY() ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) ) );
+						
+							cc++;
+						}
+						
+						makeArrow( chunk.getNode(), ColorRGBA.Red, point );
+						
+						BlockSkin bs = us.getSkin();
+
+						// Square #1
+						if ( Extras.isValidIndex(pointArray, 0) && Extras.isValidIndex(pointArray, 1) && Extras.isValidIndex(pointArray, 2) )
+						{
+							addVerticeIndexes( verticeList, indicesList );
+							verticeList.add( pointArray[0] );
+							verticeList.add( point );
+							verticeList.add( pointArray[1] );
+							verticeList.add( pointArray[2] );
+							addSquareTextureCoordinates( textureCoordinateList, bs.getTextureLocation( chunk, tmpLocation, Square.Face.Top ) );
+						}
+						
+						// Square #2
+						if ( Extras.isValidIndex(pointArray, 2) && Extras.isValidIndex(pointArray, 3) && Extras.isValidIndex(pointArray, 4) )
+						{
+							addVerticeIndexes( verticeList, indicesList );
+							verticeList.add( pointArray[3] );
+							verticeList.add( pointArray[2] );
+							verticeList.add( pointArray[4] );
+							verticeList.add( point );
+							addSquareTextureCoordinates( textureCoordinateList, bs.getTextureLocation( chunk, tmpLocation, Square.Face.Top ) );
+						}
+						
+						// Square #3
+						if ( Extras.isValidIndex(pointArray, 4) && Extras.isValidIndex(pointArray, 5) && Extras.isValidIndex(pointArray, 6) )
+						{
+							addVerticeIndexes( verticeList, indicesList );
+							verticeList.add( pointArray[7] );
+							verticeList.add( pointArray[6] );
+							verticeList.add( pointArray[0] );
+							verticeList.add( point );
+							addSquareTextureCoordinates( textureCoordinateList, bs.getTextureLocation( chunk, tmpLocation, Square.Face.Top ) );
+						}
+						
+						// Square #4
+						if ( Extras.isValidIndex(pointArray, 6) && Extras.isValidIndex(pointArray, 7) && Extras.isValidIndex(pointArray, 0) )
+						{
+							addVerticeIndexes( verticeList, indicesList );
+							verticeList.add( pointArray[5] );
+							verticeList.add( pointArray[4] );
+							verticeList.add( pointArray[6] );
+							verticeList.add( point );
+							addSquareTextureCoordinates( textureCoordinateList, bs.getTextureLocation( chunk, tmpLocation, Square.Face.Top ) );
+						}
+						
+						// Break for Y loop.
+						break;
+					}
+				}
+			}
+		}
+		
+		vertices = new Vector3f[verticeList.size()];
+		for ( int i = 0; i < verticeList.size(); i++ )
+		{
+			vertices[i] = ( (Vector3f) verticeList.get( i ) );
+		}
+		textureCoordinates = new Vector2f[textureCoordinateList.size()];
+		for ( int i = 0; i < textureCoordinateList.size(); i++ )
+		{
+			textureCoordinates[i] = ( (Vector2f) textureCoordinateList.get( i ) );
+		}
+		indices = new int[indicesList.size()];
+		for ( int i = 0; i < indicesList.size(); i++ )
+			indices[i] = ( (Integer) indicesList.get( i ) ).intValue();
+	}
+	
+	private static void loadMeshDataNewNew( ChunkControl chunk, Chunk_MeshMerger meshMerger )
+	{
+		ArrayList verticeList = new ArrayList<Vector3f>();
+		ArrayList textureCoordinateList = new ArrayList<Vector2f>();
 		ArrayList indicesList = new ArrayList();
 		TerrainControl squareTerrain = chunk.getTerrain();
 		Vector3Int tmpLocation = new Vector3Int();
@@ -137,14 +293,18 @@ public class Chunk_MeshOptimizer
 					{
 						Vector3f squareLocation = new Vector3f( x1, y1, z1 );
 						
-						Vector3f faceLoc_Bottom_TopLeft = squareLocation.add( new Vector3f( 0.0F, 0.0F, 0.0F ) ).mult( squareTerrain.getSettings().getSquareSize() );
-						Vector3f faceLoc_Bottom_TopRight = squareLocation.add( new Vector3f( 1.0F, 0.0F, 0.0F ) ).mult( squareTerrain.getSettings().getSquareSize() );
-						Vector3f faceLoc_Bottom_BottomLeft = squareLocation.add( new Vector3f( 0.0F, 0.0F, 1.0F ) ).mult( squareTerrain.getSettings().getSquareSize() );
-						Vector3f faceLoc_Bottom_BottomRight = squareLocation.add( new Vector3f( 1.0F, 0.0F, 1.0F ) ).mult( squareTerrain.getSettings().getSquareSize() );
-						Vector3f faceLoc_Top_TopLeft = squareLocation.add( new Vector3f( 0.0F, 0.5F, 0.0F ) ).mult( squareTerrain.getSettings().getSquareSize() );
-						Vector3f faceLoc_Top_TopRight = squareLocation.add( new Vector3f( 1.0F, 0.5F, 0.0F ) ).mult( squareTerrain.getSettings().getSquareSize() );
-						Vector3f faceLoc_Top_BottomLeft = squareLocation.add( new Vector3f( 0.0F, 0.5F, 1.0F ) ).mult( squareTerrain.getSettings().getSquareSize() );
-						Vector3f faceLoc_Top_BottomRight = squareLocation.add( new Vector3f( 1.0F, 0.5F, 1.0F ) ).mult( squareTerrain.getSettings().getSquareSize() );
+						float squareSize = squareTerrain.getSettings().getSquareSize();
+						
+						Vector3f point = squareLocation.mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
+						
+						Vector3f faceLoc_Bottom_TopLeft = squareLocation.add( new Vector3f( 0.0F, 0.0F, 0.0F ) ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
+						Vector3f faceLoc_Bottom_TopRight = squareLocation.add( new Vector3f( 1.0F, 0.0F, 0.0F ) ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
+						Vector3f faceLoc_Bottom_BottomLeft = squareLocation.add( new Vector3f( 0.0F, 0.0F, 1.0F ) ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
+						Vector3f faceLoc_Bottom_BottomRight = squareLocation.add( new Vector3f( 1.0F, 0.0F, 1.0F ) ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
+						Vector3f faceLoc_Top_TopLeft = squareLocation.add( new Vector3f( 0.0F, 1.0F, 0.0F ) ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
+						Vector3f faceLoc_Top_TopRight = squareLocation.add( new Vector3f( 1.0F, 1.0F, 0.0F ) ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
+						Vector3f faceLoc_Top_BottomLeft = squareLocation.add( new Vector3f( 0.0F, 1.0F, 1.0F ) ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
+						Vector3f faceLoc_Top_BottomRight = squareLocation.add( new Vector3f( 1.0F, 1.0F, 1.0F ) ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
 						
 						tmpBP = new BlockProperties();
 						
@@ -719,7 +879,7 @@ public class Chunk_MeshOptimizer
 			indices[i] = ( (Integer) indicesList.get( i ) ).intValue();
 	}
 	
-	private static void loadMeshData( ChunkControl chunk, Chunk_MeshMerger meshMerger )
+	private static void loadMeshDataNEW( ChunkControl chunk, Chunk_MeshMerger meshMerger )
 	{
 		ArrayList verticeList = new ArrayList();
 		ArrayList textureCoordinateList = new ArrayList();

@@ -1,0 +1,53 @@
+HIERARCHY
+ROOT HairMaster
+{
+	OFFSET -0.000000 0.000000 -0.000000
+	CHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation
+	JOINT FrontHair0
+	{
+		OFFSET 0.006604 -0.011504 0.084320
+		CHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation
+		JOINT FrontHair1
+		{
+			OFFSET -0.000351 -0.531411 0.283981
+			CHANNELS 3 Xrotation Yrotation Zrotation
+			End Site
+			{
+				OFFSET -0.000351 -0.532477 -0.172978
+			}
+		}
+	}
+	JOINT Hair0
+	{
+		OFFSET 0.002817 0.049342 -0.015140
+		CHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation
+		JOINT Hair1
+		{
+			OFFSET -0.000000 0.307876 -0.000000
+			CHANNELS 3 Xrotation Yrotation Zrotation
+			JOINT Hair2
+			{
+				OFFSET 0.000000 0.313707 -0.000000
+				CHANNELS 3 Xrotation Yrotation Zrotation
+				JOINT Hair3
+				{
+					OFFSET 0.000000 0.368820 0.000001
+					CHANNELS 3 Xrotation Yrotation Zrotation
+					JOINT Hair4
+					{
+						OFFSET 0.000000 0.383801 -0.000000
+						CHANNELS 3 Xrotation Yrotation Zrotation
+						End Site
+						{
+							OFFSET 0.000000 0.397492 -0.000000
+						}
+					}
+				}
+			}
+		}
+	}
+}
+MOTION
+Frames: 1
+Frame Time: 0.041667
+-0.000000 0.000000 -0.000000 0.000000 0.000000 -0.000000 0.006604 -0.011504 0.084320 0.000000 0.000000 -0.000000 -0.000001 -0.000000 0.000000 0.002817 0.049342 -0.015140 0.000000 0.000000 -0.000000 0.000000 0.000000 0.000000 -0.000000 -0.000000 0.000000 0.000000 -0.000000 -0.000000 -0.000000 0.000000 0.000000 

@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.ufharmony.Main;
 import com.ufharmony.utils.Vector3Int;
@@ -20,7 +21,12 @@ public class ChunkManager
 		// if ( chunks.get( "c." + x + "." + y + "." + z ) == null )
 		// set( x, y, z, new ChunkControl( TerrainControl.getInstance(), x, y, z ) );
 		
-		return chunks.get( "c." + x + "." + y + "." + z );
+		ChunkControl c = chunks.get( "c." + x + "." + y + "." + z );
+		
+		//if ( c == null )
+			//System.out.println( "Null chuck at: " + x + " " + y + " " + z );
+		
+		return c;
 	}
 	
 	public ChunkControl get( Vector3Int vec )
@@ -30,6 +36,8 @@ public class ChunkManager
 	
 	public void set( int x, int y, int z, ChunkControl c )
 	{
+		System.out.println( "Put check at: " + c.getLocation() );
+		
 		chunks.put( "c." + x + "." + y + "." + z, c );
 	}
 	
@@ -71,15 +79,11 @@ public class ChunkManager
 	 */
 	public void chunkPing( float lastTimePerFrame )
 	{
-		for ( ChunkControl c : chunks.values() )
-		{
-			//c.updateMesh();
-		}
-		
-		//System.out.println( "There are " + chunks.size() + " loaded!" );
+		//System.out.println( "There are " + chunks.size() + " loaded. TPF: " + lastTimePerFrame );
 		
 		// Calculate the players chunk position;
 		CharacterControl player = Main.getPlayer();
+		
 		Vector3f playerLocationTmp = player.getPhysicsLocation().divide( TerrainControl.getSettings().getSquareSize() ).divide( new Vector3f( TerrainControl.getSettings().getChunkSizeX(), TerrainControl.getSettings().getChunkSizeY(), TerrainControl.getSettings().getChunkSizeZ() ) );
 		Vector3Int playerLocation = new Vector3Int( (int) playerLocationTmp.getX(), (int) playerLocationTmp.getY(), (int) playerLocationTmp.getZ() );
 		
@@ -112,6 +116,7 @@ public class ChunkManager
 		// Update the chunk East of player
 		processChunk( playerLocation.getX() + 1, playerLocation.getY(), playerLocation.getZ() - 1 );
 		
+		/*
 		Vector3Int playerLookingAt = playerLocation;
 		Vector3Int multi = new Vector3Int();
 		
@@ -145,6 +150,7 @@ public class ChunkManager
 			
 			processChunk( playerLookingAt.getX(), playerLookingAt.getY(), playerLookingAt.getZ() );
 		}
+		*/
 	}
 	
 	public void processChunk( int x, int y, int z )
@@ -157,9 +163,9 @@ public class ChunkManager
 		}
 		else
 		{
-			ChunkControl newChunk = new ChunkControl( TerrainControl.getInstance(), x, y, y );
+			ChunkControl newChunk = new ChunkControl( TerrainControl.getInstance(), x, y, z );
 			
-			set( x, y, y, newChunk );
+			set( x, y, z, newChunk );
 			
 			newChunk.makeTerrain();
 			

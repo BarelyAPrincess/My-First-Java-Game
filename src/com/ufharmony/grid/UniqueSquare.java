@@ -5,6 +5,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.ufharmony.blocks.BlockBase;
 import com.ufharmony.objects.ObjectBase;
+import com.ufharmony.utils.Vector3Int;
 
 public class UniqueSquare
 {
@@ -19,8 +20,19 @@ public class UniqueSquare
 	public Vector3f offset = new Vector3f();
 	public Material material = null;
 	
-	public UniqueSquare( Square ob )
+	// Is my top point visible?
+	public boolean isTopVisible = false;
+	
+	// My XYZ location
+	public Vector3Int location = new Vector3Int();
+	
+	// My location in the 3d Space
+	public Vector3f locationReal = new Vector3f();
+	
+	public UniqueSquare( Square ob, Vector3Int location )
 	{
+		updateInformation( location );
+		
 		this.type = ob.getId();
 		
 		if ( ob instanceof BlockBase )
@@ -36,6 +48,18 @@ public class UniqueSquare
 		parentClass = ob.getParentClass();
 		
 		ob.customizeMe( this );
+	}
+	
+	public void updateInformation( Vector3Int loc )
+	{
+		//UniqueSquare neighborSquare_Top = TerrainControl.getInstance().getSquare( GridUtils.getNeighborSquareWorldLocation( location, Square.Face.Top ) );
+		//isTopVisible = ( neighborSquare_Top == null ? true : false );
+		
+		location = loc;
+		
+		float squareSize = TerrainControl.getSettings().getSquareSize();
+		
+		locationReal = new Vector3f( loc.getX(), loc.getY(), loc.getZ() ).mult( new Vector3f( squareSize, squareSize / 2f, squareSize ) );
 	}
 	
 	public void makeGlow()

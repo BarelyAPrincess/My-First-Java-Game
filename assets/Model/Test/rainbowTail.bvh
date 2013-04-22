@@ -1,0 +1,34 @@
+HIERARCHY
+ROOT Tail0
+{
+	OFFSET 0.000000 0.000744 0.002085
+	CHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation
+	JOINT Tail1
+	{
+		OFFSET 0.000000 0.375813 0.002383
+		CHANNELS 3 Xrotation Yrotation Zrotation
+		JOINT Tail2
+		{
+			OFFSET 0.000000 0.432363 0.002742
+			CHANNELS 3 Xrotation Yrotation Zrotation
+			JOINT Tail3
+			{
+				OFFSET 0.000000 0.388942 0.002467
+				CHANNELS 3 Xrotation Yrotation Zrotation
+				JOINT Tail4
+				{
+					OFFSET 0.000000 0.415160 0.002633
+					CHANNELS 3 Xrotation Yrotation Zrotation
+					End Site
+					{
+						OFFSET 0.000000 0.399417 0.002533
+					}
+				}
+			}
+		}
+	}
+}
+MOTION
+Frames: 1
+Frame Time: 0.033333
+0.000000 0.000744 0.002085 0.000000 -0.000000 0.000000 0.000000 -0.000000 0.000000 0.000000 -0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 

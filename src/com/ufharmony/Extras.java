@@ -50,6 +50,9 @@ public class Extras
 		inputManager.addMapping( "MainMenu", new KeyTrigger( KeyInput.KEY_Q ) );
 		inputManager.addListener( app, "MainMenu" );
 		
+		inputManager.addMapping( "Respawn", new KeyTrigger( KeyInput.KEY_F ) );
+		inputManager.addListener( app, "Respawn" );
+		
 		// inputManager.deleteMapping( "FLYCAM_ZoomIn" );
 		// inputManager.deleteMapping( "FLYCAM_ZoomOut" );
 		
@@ -79,5 +82,19 @@ public class Extras
 		ch.setText( "+" );
 		ch.setLocalTranslation( app.settings.getWidth() / 2 - app.guiFont.getCharSet().getRenderedSize() / 3 * 2, app.settings.getHeight() / 2 + ch.getLineHeight() / 2, 0 );
 		app.getGuiNode().attachChild( ch );
+	}
+	
+	public static boolean isValidIndex ( Object[] o, int index )
+	{
+		try
+		{
+			Object t = o[index];
+		}
+		catch ( ArrayIndexOutOfBoundsException e )
+		{
+			return false;
+		}
+		
+		return true;
 	}
 }

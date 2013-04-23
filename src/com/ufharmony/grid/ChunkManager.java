@@ -5,27 +5,22 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 
 import com.jme3.bullet.control.CharacterControl;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.ufharmony.Main;
 import com.ufharmony.utils.Vector3Int;
 
 public class ChunkManager
 {
 	private HashMap<String, ChunkControl> chunks = new HashMap<String, ChunkControl>();
+	private HashMap<String, BandageControl> bandAids = new HashMap<String, BandageControl>();
 	private ArrayList<ChunkListener> chunkListeners = new ArrayList<ChunkListener>();
 	
 	public ChunkControl get( int x, int y, int z )
 	{
-		// if ( chunks.get( "c." + x + "." + y + "." + z ) == null )
-		// set( x, y, z, new ChunkControl( TerrainControl.getInstance(), x, y, z ) );
+		//System.out.println( "c." + x + "." + y + "." + z );
 		
 		ChunkControl c = chunks.get( "c." + x + "." + y + "." + z );
-		
-		//if ( c == null )
-			//System.out.println( "Null chuck at: " + x + " " + y + " " + z );
-		
 		return c;
 	}
 	
@@ -36,14 +31,31 @@ public class ChunkManager
 	
 	public void set( int x, int y, int z, ChunkControl c )
 	{
-		System.out.println( "Put check at: " + c.getLocation() );
-		
 		chunks.put( "c." + x + "." + y + "." + z, c );
 	}
 	
 	public void set( Vector3Int vec, ChunkControl c )
 	{
 		set( vec.getX(), vec.getY(), vec.getZ(), c );
+	}
+	
+	public BandageControl getBandAid( ChunkControl a, ChunkControl b )
+	{
+		if ( a == null || b == null )
+			return null;
+		
+		//System.out.println( "Getting Bandage: b." + a.getLocation().getX() + "." + a.getLocation().getY() + "." + a.getLocation().getZ() + "." + b.getLocation().getX() + "." + b.getLocation().getY() + "." + b.getLocation().getZ() );
+		
+		BandageControl c = bandAids.get( "b." + a.getLocation().getX() + "." + a.getLocation().getY() + "." + a.getLocation().getZ() + "." + b.getLocation().getX() + "." + b.getLocation().getY() + "." + b.getLocation().getZ() );
+		return c;
+	}
+	
+	public void setBandAid( ChunkControl a, ChunkControl b, BandageControl c )
+	{
+		if ( a == null || b == null )
+			return;
+		
+		bandAids.put( "b." + a.getLocation().getX() + "." + a.getLocation().getY() + "." + a.getLocation().getZ() + "." + b.getLocation().getX() + "." + b.getLocation().getY() + "." + b.getLocation().getZ(), c );
 	}
 	
 	public boolean isValidChunk( int x, int y, int z )
@@ -183,10 +195,79 @@ public class ChunkManager
 		chunkListeners.remove( squareChunkListener );
 	}
 	
+	public void updateBandages( ChunkControl chunk )
+	{
+		try
+		{
+			if ( chunk == null )
+				return;
+			
+			Vector2f xYS[] = new Vector2f[]{new Vector2f(-1, 0),new Vector2f(0, -1),new Vector2f(1, 0),new Vector2f(0, 1)};
+			
+			for ( Vector2f xY: xYS )
+			{
+				Vector3Int cl = chunk.getLocation().add( new Vector3Int( (int) xY.getX(), 0, (int) xY.getY() ) );
+				
+				ChunkControl chunkB = get( cl );
+				
+				//.mult( TerrainControl.getSettings().getChunkSizeX() )
+				
+				if ( chunkB != null )
+				{
+					BandageControl bc = getBandAid( chunk, chunkB );
+					
+					if ( bc == null )
+					{
+						bc = getBandAid( chunkB, chunk );
+	
+						if ( bc == null )
+						{
+							BandageControl bandAid = null;
+							
+							if ( xY.getX() < 0 )
+							{
+								bandAid = new BandageControl( TerrainControl.getInstance(), chunk.getLocation().getX(), chunk.getLocation().getY(), chunk.getLocation().getZ(), 0, 1 );
+							}
+							else if ( xY.getY() < 0 )
+							{
+								bandAid = new BandageControl( TerrainControl.getInstance(), chunk.getLocation().getX(), chunk.getLocation().getY(), chunk.getLocation().getZ(), 1, 0 );
+							}
+							else if ( xY.getX() > 0 )
+							{
+								bandAid = new BandageControl( TerrainControl.getInstance(), chunkB.getLocation().getX(), chunkB.getLocation().getY(), chunkB.getLocation().getZ(), 0, 1 );
+							}
+							else if ( xY.getY() > 0 )
+							{
+								bandAid = new BandageControl( TerrainControl.getInstance(), chunkB.getLocation().getX(), chunkB.getLocation().getY(), chunkB.getLocation().getZ(), 1, 0 );
+							}
+							
+							setBandAid( chunk, chunkB, bandAid );
+							bandAid.updateMesh();
+						}
+						else
+						{
+							bc.updateMesh();
+						}
+					}
+					else
+					{
+						bc.updateMesh();
+					}
+				}
+			}
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+		}
+	}
+
 	public void updateChunk( ChunkControl squareChunk )
 	{
 		if ( squareChunk.updateSpatial() )
 		{
+			updateBandages( squareChunk );
+			
 			System.out.println( "Updating chunk: " + squareChunk.getLocation() );
 			
 			for ( int i = 0; i < chunkListeners.size(); i++ )

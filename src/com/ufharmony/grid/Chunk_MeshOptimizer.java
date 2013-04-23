@@ -119,26 +119,6 @@ public class Chunk_MeshOptimizer
 	
 	public static BlockProperties[][][] squareProperties;
 	
-	private static void makeArrow( Node n, ColorRGBA c, Vector3f l )
-	{
-		if ( n == null || c == null || l == null )
-			return;
-		
-		Arrow arrow = new Arrow( new Vector3f( 0, 1, 0 ) );
-		Geometry marker = new Geometry( "Marker" );
-		marker.setMesh( arrow );
-		
-		Material mat = new Material( Main.getInstance().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md" );
-		mat.setColor( "Color", c );
-		mat.getAdditionalRenderState().setBlendMode( BlendMode.Alpha );
-		
-		marker.setMaterial( mat );
-		
-		n.attachChild( marker );
-		
-		marker.setLocalTranslation( l );
-	}
-	
 	private static void loadMeshData( ChunkControl chunk, Chunk_MeshMerger meshMerger )
 	{
 		ArrayList<Vector3f> verticeList = new ArrayList<Vector3f>();
@@ -148,9 +128,9 @@ public class Chunk_MeshOptimizer
 		Vector3Int tmpLocation = new Vector3Int();
 		float squareSize = TerrainControl.getSettings().getSquareSize();
 		
-		for ( int x1 = 0; x1 < TerrainControl.getSettings().getChunkSizeX(); x1 = x1 + 2 )
+		for ( int x1 = 1; x1 < TerrainControl.getSettings().getChunkSizeX() - 1; x1 = x1 + 2 )
 		{
-			for ( int z1 = 0; z1 < TerrainControl.getSettings().getChunkSizeZ(); z1 = z1 + 2 )
+			for ( int z1 = 1; z1 < TerrainControl.getSettings().getChunkSizeZ() - 1; z1 = z1 + 2 )
 			{
 				for ( int y1 = TerrainControl.getSettings().getChunkSizeY() - 1; y1 >= 0; y1-- )
 				{
@@ -175,7 +155,11 @@ public class Chunk_MeshOptimizer
 								
 								Vector3Int newLocation = tmpLocation.setY( 0 ).add( new Vector3Int( (int) xY.getX(), y2, (int) xY.getY() ) );
 								
-								if ( newLocation.getX() < 0 || newLocation.getY() < 0 || newLocation.getX() > 15 || newLocation.getY() > 15 )
+								if ( newLocation.getX() < 0 || newLocation.getZ() < 0 )
+								{
+									
+								}
+								if ( newLocation.getX() > 15 || newLocation.getZ() > 15 )
 								{
 									us2 = squareTerrain.getSquare( newLocation.add( chunk.getLocation() ) );
 								}
@@ -198,7 +182,7 @@ public class Chunk_MeshOptimizer
 							cc++;
 						}
 						
-						makeArrow( chunk.getNode(), ColorRGBA.Red, point );
+						//makeArrow( chunk.getNode(), ColorRGBA.Red, point );
 						
 						BlockSkin bs = us.getSkin();
 
@@ -566,7 +550,7 @@ public class Chunk_MeshOptimizer
 			indices[i] = ( (Integer) indicesList.get( i ) ).intValue();
 	}
 	
-	private static void loadMeshDataOLD( ChunkControl chunk, Chunk_MeshMerger meshMerger )
+	private static void loadMeshDataOld( ChunkControl chunk, Chunk_MeshMerger meshMerger )
 	{
 		ArrayList verticeList = new ArrayList();
 		ArrayList textureCoordinateList = new ArrayList();

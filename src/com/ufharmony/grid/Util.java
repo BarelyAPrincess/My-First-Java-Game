@@ -2,7 +2,14 @@ package com.ufharmony.grid;
 
 import java.util.Random;
 
+import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.jme3.scene.debug.Arrow;
+import com.ufharmony.Main;
 import com.ufharmony.utils.Vector3Int;
 
 public class Util
@@ -33,5 +40,25 @@ public class Util
 			number = Math.round( number );
 		}
 		return number;
+	}
+	
+	static void makeArrow( Node n, ColorRGBA c, Vector3f l )
+	{
+		if ( n == null || c == null || l == null )
+			return;
+		
+		Arrow arrow = new Arrow( new Vector3f( 0, 1, 0 ) );
+		Geometry marker = new Geometry( "Marker" );
+		marker.setMesh( arrow );
+		
+		Material mat = new Material( Main.getInstance().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md" );
+		mat.setColor( "Color", c );
+		mat.getAdditionalRenderState().setBlendMode( BlendMode.Alpha );
+		
+		marker.setMaterial( mat );
+		
+		n.attachChild( marker );
+		
+		marker.setLocalTranslation( l );
 	}
 }

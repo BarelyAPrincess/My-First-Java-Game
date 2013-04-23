@@ -1,6 +1,8 @@
 package com.ufharmony;
 
 import java.util.Random;
+import com.jme3.effect.ParticleMesh;
+import com.jme3.effect.ParticleMesh.Type;
 
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
@@ -17,7 +19,9 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.KinematicRagdollControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.joints.HingeJoint;
+import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.collision.CollisionResults;
+import com.jme3.effect.ParticleEmitter;
 import com.jme3.font.BitmapFont;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.controls.ActionListener;
@@ -44,6 +48,7 @@ import com.ufharmony.blocks.BlockBase;
 import com.ufharmony.blocks.BlockWood;
 import com.ufharmony.grid.ChunkControl;
 import com.ufharmony.grid.ChunkListener;
+import com.ufharmony.grid.ChunkManager;
 import com.ufharmony.grid.GridSettings;
 import com.ufharmony.grid.Navigator;
 import com.ufharmony.grid.TerrainControl;
@@ -69,12 +74,12 @@ public class Main extends Application implements ActionListener, AnalogListener,
 	public static Main instance = null;
 	
 	private BulletAppState bulletAppState;
-	private static Node playerModel = new Node("Player");
+	private static Node playerModel = new Node( "Player" );
 	private static CharacterControl player;
 	private static ChaseCamera chaseCam;
 	private float playerSpeed = 0;
 	private AnimChannel playerChannel;
-   private AnimControl playerControl;
+	private AnimControl playerControl;
 	
 	private Vector3f walkDirection = new Vector3f();
 	private boolean left = false, right = false, up = false, down = false;
@@ -159,18 +164,20 @@ public class Main extends Application implements ActionListener, AnalogListener,
 	
 	Spatial body;
 	Spatial tail;
+	Spatial mane;
+	Spatial wings;
+	Spatial eyes;
 	
 	public void initPlayer()
 	{
-		flyCam.setEnabled(false);
+		flyCam.setEnabled( false );
 		
 		body = assetManager.loadModel( "Model/Test/derpy.mesh.xml" );
-		
 		tail = assetManager.loadModel( "Model/Test/derpyTail.mesh.xml" );
-      
+		
 		Material mat = new Material( assetManager, "Common/MatDefs/Light/Lighting.j3md" );
 		
-		Texture tex = assetManager.loadTexture( "Model/Test/rainbowDash.png" );
+		Texture tex = assetManager.loadTexture( "Model/Test/derpy.png" );
 		
 		mat.setTexture( "DiffuseMap", tex );
 		mat.setTexture( "NormalMap", tex );
@@ -180,14 +187,14 @@ public class Main extends Application implements ActionListener, AnalogListener,
 		mat.setFloat( "Shininess", 5f );
 		
 		body.setMaterial( mat );
-		body.setLocalRotation( new Quaternion().fromAngles( new float[]{ 0 - FastMath.PI/2, 0, 0 } ) );
-		body.updateModelBound();
+		body.setLocalRotation( new Quaternion().fromAngles( new float[] { 0 - FastMath.PI / 2, 0, 0 } ) );
+		// body.updateModelBound();
 		
-		//body.center();
+		// body.center();
 		
 		Material matt = new Material( assetManager, "Common/MatDefs/Light/Lighting.j3md" );
 		
-		Texture text = assetManager.loadTexture( "Model/Test/derpyHair.png" );
+		Texture text = assetManager.loadTexture( "Model/Test/derpyMane.png" );
 		
 		matt.setTexture( "DiffuseMap", text );
 		matt.setTexture( "NormalMap", text );
@@ -196,61 +203,83 @@ public class Main extends Application implements ActionListener, AnalogListener,
 		matt.setColor( "Diffuse", ColorRGBA.White );
 		matt.setFloat( "Shininess", 5f );
 		
-		tail.setLocalRotation( new Quaternion().fromAngles( new float[]{ 0 - FastMath.PI/2, 0, 0 } ) );
+		tail.setMaterial( matt );
 		
-		AnimControl control = tail.getControl(AnimControl.class);
+		tail.setLocalRotation( new Quaternion().fromAngles( new float[] { FastMath.HALF_PI / 2, 0, 0 } ) );
+		
+		AnimControl control = tail.getControl( AnimControl.class );
 		
 		/*
-		KinematicRagdollControl ragdoll = new KinematicRagdollControl(0.5f);
-		ragdoll.addBoneName("Tail0");
-		ragdoll.addBoneName("Tail1");
-		ragdoll.addBoneName("Tail2");
-		ragdoll.addBoneName("Tail3");
-		ragdoll.addBoneName("Tail4");
-      //ragdoll.addCollisionListener(this);
-      tail.addControl(ragdoll);
-      */
+		 * KinematicRagdollControl ragdoll = new KinematicRagdollControl(0.5f); ragdoll.addBoneName("Tail0");
+		 * ragdoll.addBoneName("Tail1"); ragdoll.addBoneName("Tail2"); ragdoll.addBoneName("Tail3");
+		 * ragdoll.addBoneName("Tail4"); //ragdoll.addCollisionListener(this); tail.addControl(ragdoll);
+		 */
 		
-      //bulletAppState.getPhysicsSpace().add( ragdoll );
+		// bulletAppState.getPhysicsSpace().add( ragdoll );
 		
-		playerControl = body.getControl(AnimControl.class);
-      playerControl.addListener(this);
-      playerChannel = playerControl.createChannel();
+		playerControl = body.getControl( AnimControl.class );
+		playerControl.addListener( this );
+		playerChannel = playerControl.createChannel();
 		
-      playerChannel.setAnim("Stand");
-      playerChannel.setLoopMode( LoopMode.Loop );
+		playerChannel.setAnim( "Stand" );
+		playerChannel.setLoopMode( LoopMode.Loop );
 		
-		//body.setLocalTranslation( 0, -11.5f, 0 );
-      
-      tail.setLocalRotation( new Quaternion().fromAngleAxis( FastMath.HALF_PI, new Vector3f( 1, 0, 0 ) ) );
-      
+		body.setLocalTranslation( 0, -1.4f, 0 );
+		
+		// tail.setLocalRotation( new Quaternion().fromAngleAxis( FastMath.HALF_PI, new Vector3f( 1, 0, 0 ) ) );
+		
 		playerModel.attachChild( body );
-		//playerModel.attachChild( tail );
+		// playerModel.attachChild( tail );
 		
-		player = new CharacterControl( new CapsuleCollisionShape( 1.5f, 3f ), 0.5f );
+		player = new CharacterControl( new CapsuleCollisionShape( 1.0f, 0.5f ), 1.5f );
 		player.setJumpSpeed( 30.0F );
-		player.setFallSpeed(30.0F);
-		player.setGravity(80.0F);
-      
-      playerModel.addControl(player);
-      
-      SkeletonControl sc = body.getControl( SkeletonControl.class );
-      
-      Node n = sc.getAttachmentsNode( "Hip.001.R" );
-      
-      n.attachChild( tail );
-      
+		player.setFallSpeed( 30.0F );
+		player.setGravity( 80.0F );
+		
+		playerModel.addControl( player );
+		
+		SkeletonControl sc = body.getControl( SkeletonControl.class );
+		
+		// eyes = assetManager.loadModel( "Model/Test/derpyEye.obj" );
+		// wings = assetManager.loadModel( "Model/Test/rainbowWings.obj" );
+		mane = assetManager.loadModel( "Model/Test/derpyMane.obj" );
+		
+		mane.setLocalRotation( new Quaternion().fromAngles( new float[] { 0 - FastMath.PI / 1.8f, 0, 0 } ) );
+		mane.setLocalTranslation( new Vector3f( 0, 0.5f, -0.2f ) );
+		
+		mane.setMaterial( matt );
+		
+		sc.getAttachmentsNode( "Hip.001.R" ).attachChild( tail );
+		// sc.getAttachmentsNode( "EyeScaler" ).attachChild( eyes );
+		// sc.getAttachmentsNode( "CrossBack" ).attachChild( wings );
+		sc.getAttachmentsNode( "Head" ).attachChild( mane );
+		
 		bulletAppState.getPhysicsSpace().add( player );
-      
-      player.setPhysicsLocation( new Vector3f( 7.0F, 32.0F, 7.0F ).mult( cubesSettings.getSquareSize() ) );
-      playerModel.setLocalRotation( new Quaternion().fromAngles( new float[]{ 0 - FastMath.PI/2, 0, 0 } ) );
+		
+		player.setPhysicsLocation( new Vector3f( 1.0F, 24.0F, 1.0F ).mult( cubesSettings.getSquareSize() ) );
+		// playerModel.setLocalRotation( new Quaternion().fromAngles( new float[]{ 0 - FastMath.PI/2, 0, 0 } ) );
+		// playerModel.updateModelBound();
+		
+		/*
+		ParticleEmitter dustEmitter = new ParticleEmitter( "dust emitter", Type.Point, 100 );
+		Material dustMat = new Material( assetManager, "Common/MatDefs/Misc/Particle.j3md" );
+		dustEmitter.setMaterial( dustMat );
+		dustMat.setTexture( "Texture", assetManager.loadTexture( "Effects/Smoke/Smoke.png" ) ); // 2x2 sprite ani
+		// dustMat.setBoolean("PointSprite",true);
+		dustEmitter.setImagesX( 2 );
+		dustEmitter.setImagesY( 2 );
+		dustEmitter.setSelectRandomImage( true );
+		dustEmitter.setRandomAngle( true );
+		dustEmitter.getParticleInfluencer().setVelocityVariation( 1f );
+		playerModel.attachChild( dustEmitter );
+		*/
+		
+		chaseCam = new ChaseCamera( cam, playerModel, inputManager );
+		chaseCam.setSmoothMotion( true );
+		
+		chaseCam.setTrailingEnabled( false );
 		
 		rootNode.attachChild( playerModel );
-		
-		chaseCam = new ChaseCamera(cam, playerModel, inputManager);
-		chaseCam.setSmoothMotion(true);
-		
-		chaseCam.setTrailingEnabled(false);
 	}
 	
 	public void releaseCursor()
@@ -325,9 +354,9 @@ public class Main extends Application implements ActionListener, AnalogListener,
 		rootNode.attachChild( terrainNode );
 		
 		initPlayer();
-		//cam.lookAtDirection( new Vector3f( 10.0F, -10.0F, 10.0F ), Vector3f.UNIT_Y );
+		// cam.lookAtDirection( new Vector3f( 10.0F, -10.0F, 10.0F ), Vector3f.UNIT_Y );
 		
-		//blockTerrain.setSquare( new Vector3Int( 3, 4, 3 ), ObjectLamp.class );
+		// blockTerrain.setSquare( new Vector3Int( 3, 4, 3 ), ObjectLamp.class );
 	}
 	
 	public void bindEntity( Spatial o )
@@ -344,15 +373,13 @@ public class Main extends Application implements ActionListener, AnalogListener,
 	public void updateEasy( float tpf )
 	{
 		/*
-		Vector3f rotor = player.getViewDirection();
-		
-		Float n = (float) Math.atan2(rotor.getX(), rotor.getZ());
-		Float e = (float) Math.atan2(walkDirection.getX(), walkDirection.getZ());
-		Float angle = e - n;
-		angle = (float) ( angle * 360 / (Math.PI*2) );
-		
-		System.out.println( "Rotation: " + angle );
-		*/
+		 * Vector3f rotor = player.getViewDirection();
+		 * 
+		 * Float n = (float) Math.atan2(rotor.getX(), rotor.getZ()); Float e = (float) Math.atan2(walkDirection.getX(),
+		 * walkDirection.getZ()); Float angle = e - n; angle = (float) ( angle * 360 / (Math.PI*2) );
+		 * 
+		 * System.out.println( "Rotation: " + angle );
+		 */
 		
 		if ( !player.getViewDirection().equals( walkDirection.setY( 0f ) ) )
 			player.setViewDirection( walkDirection.setY( 0f ) );
@@ -376,6 +403,7 @@ public class Main extends Application implements ActionListener, AnalogListener,
 	
 	String lastDirection = "";
 	float turnAmount = 0;
+	
 	public void onAnalog( String name, float value, float tpf )
 	{
 		float playerMoveSpeed = 5f * tpf;
@@ -435,43 +463,43 @@ public class Main extends Application implements ActionListener, AnalogListener,
 		player.setWalkDirection( walkDirection );
 	}
 	
-	public void updatePlayerState ( int state )
+	public void updatePlayerState( int state )
 	{
 		if ( state == TROT )
 		{
-			//System.out.println( "Setting player animation to: Trot" );
+			// System.out.println( "Setting player animation to: Trot" );
 			if ( playerChannel.getAnimationName() != "Trot" )
-				playerChannel.setAnim("Trot");
+				playerChannel.setAnim( "Trot" );
 		}
 		else if ( state == RUN )
 		{
-			//System.out.println( "Setting player animation to: Trot" );
+			// System.out.println( "Setting player animation to: Trot" );
 			if ( playerChannel.getAnimationName() != "Canter" )
-				playerChannel.setAnim("Canter");
+				playerChannel.setAnim( "Canter" );
 		}
 		else if ( state == JUMP )
 		{
 			if ( playerState == TROT || playerState == RUN )
 			{
 				if ( playerChannel.getAnimationName() != "Canter" )
-				playerChannel.setAnim("Canter");
+					playerChannel.setAnim( "Canter" );
 			}
 			else
 			{
 				if ( playerChannel.getAnimationName() != "Trot" )
-				playerChannel.setAnim("Trot");
+					playerChannel.setAnim( "Trot" );
 			}
 		}
 		else
 		{
-			//System.out.println( "Setting player animation to: Standing" );
+			// System.out.println( "Setting player animation to: Standing" );
 			if ( playerChannel.getAnimationName() != "Stand" )
-				playerChannel.setAnim("Stand");
+				playerChannel.setAnim( "Stand" );
 		}
 		
 		playerState = state;
 	}
-
+	
 	public void onAction( String binding, boolean value, float tpf )
 	{
 		try
@@ -515,8 +543,8 @@ public class Main extends Application implements ActionListener, AnalogListener,
 				if ( !value )
 				{
 					if ( binding.equals( "F5" ) )
-					{	
-						
+					{
+						System.out.println( "Player Location: " + player.getPhysicsLocation() + " / Player Looking Direction: " + player.getViewDirection() + " / Camera Looking Direction: " + cam.getDirection() );
 					}
 					else if ( binding.equals( "Pause" ) )
 					{
@@ -551,10 +579,18 @@ public class Main extends Application implements ActionListener, AnalogListener,
 					}
 					else if ( binding.equals( "Respawn" ) )
 					{
-						player.setPhysicsLocation( new Vector3f( 5.0F, 32.0F, 5.0F ).mult( cubesSettings.getSquareSize() ) );
+						player.setPhysicsLocation( new Vector3f( 1.0F, 24.0F, 1.0F ).mult( cubesSettings.getSquareSize() ) );
 					}
 					else if ( binding.equals( "Derp" ) )
 					{
+						/*
+						 * ChunkManager cm = TerrainControl.getInstance().getChunkManager();
+						 * 
+						 * ChunkControl c1 = cm.get( 0, 0, 0 ); ChunkControl c2 = cm.get( -1, 0, 0 );
+						 * 
+						 * cm.getBandAid( c2, c1 ) .updateMesh();
+						 */
+						
 						ChunkControl c = blockTerrain.getChunk( new Vector3Int( player.getPhysicsLocation().divide( cubesSettings.getSquareSize() ) ) );
 						
 						if ( c != null )
@@ -713,13 +749,13 @@ public class Main extends Application implements ActionListener, AnalogListener,
 		simpleRender( renderManager );
 		stateManager.postRender();
 	}
-
+	
 	@Override
 	public void onAnimChange( AnimControl arg0, AnimChannel arg1, String arg2 )
 	{
 		
 	}
-
+	
 	@Override
 	public void onAnimCycleDone( AnimControl arg0, AnimChannel arg1, String arg2 )
 	{

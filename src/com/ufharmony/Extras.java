@@ -89,6 +89,9 @@ public class Extras
 		try
 		{
 			Object t = o[index];
+			
+			if ( t == null )
+				return false;
 		}
 		catch ( ArrayIndexOutOfBoundsException e )
 		{
